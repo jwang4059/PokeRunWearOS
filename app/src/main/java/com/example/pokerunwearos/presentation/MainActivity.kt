@@ -20,7 +20,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.health.services.client.HealthServices
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.example.pokerunwearos.R
@@ -60,6 +59,16 @@ fun Greeting(greetingName: String) {
 //    viewLifecycleOwner.lifecycleScope.launch {
 //        val capabilities = measureClient.getCapabilitiesAsync().await()
 //        supportsHeartRate = DataType.HEART_RATE_BPM in capabilities.supportedDataTypesMeasure
+//    }
+
+//    val healthClient = HealthServices.getClient(this /*context*/)
+//    val exerciseClient = healthClient.exerciseClient
+//    viewLifecycleOwner.lifecycleScope.launch {
+//        val capabilities = exerciseClient.getCapabilitiesAsync().await()
+//        if (ExerciseType.RUNNING in capabilities.supportedExerciseTypes) {
+//            val runningCapabilities =
+//                capabilities.getExerciseTypeCapabilities(ExerciseType.RUNNING)
+//        }
 //    }
 
     Text(
