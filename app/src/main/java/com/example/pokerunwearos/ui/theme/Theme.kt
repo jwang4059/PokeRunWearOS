@@ -1,4 +1,4 @@
-package com.example.pokerunwearos.presentation.theme
+package com.example.pokerunwearos.ui.theme
 
 import androidx.compose.runtime.Composable
 import androidx.wear.compose.material.MaterialTheme

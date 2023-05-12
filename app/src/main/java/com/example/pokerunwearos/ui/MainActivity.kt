@@ -4,7 +4,7 @@
  * changes to the libraries and their usages.
  */
 
-package com.example.pokerunwearos.presentation
+package com.example.pokerunwearos.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -23,7 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.example.pokerunwearos.R
-import com.example.pokerunwearos.presentation.theme.PokeRunWearOSTheme
+import com.example.pokerunwearos.ui.theme.PokeRunWearOSTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,23 +54,6 @@ fun WearApp(greetingName: String) {
 
 @Composable
 fun Greeting(greetingName: String) {
-//    val healthClient = HealthServices.getClient(this /*context*/)
-//    val measureClient = healthClient.measureClient
-//    viewLifecycleOwner.lifecycleScope.launch {
-//        val capabilities = measureClient.getCapabilitiesAsync().await()
-//        supportsHeartRate = DataType.HEART_RATE_BPM in capabilities.supportedDataTypesMeasure
-//    }
-
-//    val healthClient = HealthServices.getClient(this /*context*/)
-//    val exerciseClient = healthClient.exerciseClient
-//    viewLifecycleOwner.lifecycleScope.launch {
-//        val capabilities = exerciseClient.getCapabilitiesAsync().await()
-//        if (ExerciseType.RUNNING in capabilities.supportedExerciseTypes) {
-//            val runningCapabilities =
-//                capabilities.getExerciseTypeCapabilities(ExerciseType.RUNNING)
-//        }
-//    }
-
     Text(
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center,
