@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.21'
 }
 
@@ -27,11 +29,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     buildFeatures {
         compose true
@@ -71,6 +73,10 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle_version"    // Lifecycles only (without ViewModel or LiveData)
     implementation "androidx.lifecycle:lifecycle-runtime-compose:$lifecycle_version"    // Lifecycle utilities for Compose
 
+    // Hilt
+    implementation "com.google.dagger:hilt-android:2.44"
+    kapt "com.google.dagger:hilt-compiler:2.44"
+
     // Health Services
     implementation "androidx.health:health-services-client:1.0.0-beta03"
 
@@ -100,4 +106,9 @@ dependencies {
 //    androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
 //    debugImplementation 'androidx.compose.ui:ui-tooling'
 //    debugImplementation 'androidx.compose.ui:ui-test-manifest'
+}
+
+// Allow references to generated code
+kapt {
+    correctErrorTypes true
 }
