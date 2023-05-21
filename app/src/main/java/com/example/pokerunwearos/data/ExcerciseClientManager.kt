@@ -1,6 +1,7 @@
 package com.example.pokerunwearos.data
 
 import androidx.health.services.client.HealthServicesClient
+import androidx.health.services.client.data.ExerciseTrackedStatus
 import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseTypeCapabilities
 import kotlinx.coroutines.CoroutineScope
@@ -24,5 +25,16 @@ class ExerciseClientManager @Inject constructor (
             }
         }
         return exerciseCapabilities
+    }
+
+    suspend fun isExerciseInProgress(): Boolean {
+        val exerciseInfo = exerciseClient.getCurrentExerciseInfoAsync().await()
+        return exerciseInfo.exerciseTrackedStatus == ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS
+    }
+
+    suspend fun isTrackingExerciseInAnotherApp(): Boolean {
+        val exerciseInfo = exerciseClient.getCurrentExerciseInfoAsync().await()
+        return exerciseInfo.exerciseTrackedStatus == ExerciseTrackedStatus.OTHER_APP_IN_PROGRESS
+
     }
 }

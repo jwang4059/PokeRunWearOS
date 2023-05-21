@@ -16,4 +16,9 @@ class HealthServicesRepository @Inject constructor(
     suspend fun hasExerciseCapability(): Boolean = getExerciseCapabilities() != null
 
     private suspend fun getExerciseCapabilities() = exerciseClientManager.getExerciseCapabilities()
+
+    suspend fun isExerciseInProgress(): Boolean = exerciseClientManager.isExerciseInProgress()
+
+    suspend fun isTrackingExerciseInAnotherApp() =
+        exerciseClientManager.isTrackingExerciseInAnotherApp()
 }
