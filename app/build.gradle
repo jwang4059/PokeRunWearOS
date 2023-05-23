@@ -61,6 +61,7 @@ dependencies {
     implementation "androidx.wear:wear:1.2.0"
     implementation "androidx.wear.compose:compose-material:$wear_compose_version"
     implementation "androidx.wear.compose:compose-foundation:$wear_compose_version"
+    implementation "androidx.wear.compose:compose-navigation:$wear_compose_version"
 
     // [Ongoing Activity]
     implementation "androidx.wear:wear-ongoing:1.0.0"
@@ -93,6 +94,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-service:$lifecycle_version"
 
     // Hilt
+    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0'
     implementation "com.google.dagger:hilt-android:2.44"
     kapt "com.google.dagger:hilt-compiler:2.44"
 

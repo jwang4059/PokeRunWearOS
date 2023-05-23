@@ -9,17 +9,31 @@ package com.example.pokerunwearos
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavHostController
+import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import com.example.pokerunwearos.ui.PokeRunViewModel
 import com.example.pokerunwearos.ui.PokeRunWearApp
 import com.example.pokerunwearos.ui.theme.PokeRunWearOSTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private lateinit var navController: NavHostController
+
+    private val pokeRunViewModel by viewModels<PokeRunViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            PokeRunWearOSTheme {
-                PokeRunWearApp("Trainer")
+
+        lifecycleScope.launch {
+            val destination = Screens.StartingUp.route
+            setContent {
+                navController = rememberSwipeDismissableNavController()
+                PokeRunWearOSTheme {
+                    PokeRunWearApp(navController, startDestination = destination)
+                }
             }
         }
     }

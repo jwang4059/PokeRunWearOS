@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokerunwearos.data.HealthServicesRepository
+import com.example.pokerunwearos.data.ServiceState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -43,13 +44,23 @@ class PokeRunViewModel @Inject constructor(
     )
 
 
-//    private var _exerciseServiceState: MutableState<ServiceState> =
-//        healthServicesRepository.serviceState
-//    val exerciseServiceState = _exerciseServiceState
+    private var _exerciseServiceState: MutableState<ServiceState> =
+        healthServicesRepository.serviceState
+    val exerciseServiceState = _exerciseServiceState
 
     init {
         viewModelScope.launch {
-            println(healthServicesRepository.hasExerciseCapability())
+            healthServicesRepository.createService()
         }
     }
+
+    suspend fun isExerciseInProgress(): Boolean {
+        return healthServicesRepository.isExerciseInProgress()
+    }
+
+    fun prepareExercise() = viewModelScope.launch { healthServicesRepository.prepareExercise() }
+    fun startExercise() = viewModelScope.launch { healthServicesRepository.startExercise() }
+    fun pauseExercise() = viewModelScope.launch { healthServicesRepository.pauseExercise() }
+    fun endExercise() = viewModelScope.launch { healthServicesRepository.endExercise() }
+    fun resumeExercise() = viewModelScope.launch { healthServicesRepository.resumeExercise() }
 }
