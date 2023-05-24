@@ -26,6 +26,7 @@ class PokeRunViewModel @Inject constructor(
 
     val permissions = arrayOf(
         Manifest.permission.BODY_SENSORS,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACTIVITY_RECOGNITION
     )

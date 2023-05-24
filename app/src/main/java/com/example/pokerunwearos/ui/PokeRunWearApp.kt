@@ -1,6 +1,9 @@
 package com.example.pokerunwearos.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
@@ -16,7 +19,16 @@ fun PokeRunWearApp(
         navController = navController, startDestination = startDestination
     ) {
         composable(Screens.StartingUp.route) {
-            StartingUp(greetingName = "Trainer")
+            val viewModel = hiltViewModel<PokeRunViewModel>()
+            val serviceState by viewModel.exerciseServiceState
+            val permissions = viewModel.permissions
+            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            StartingUp(
+                serviceState = serviceState,
+                permissions = permissions,
+                hasCapabilities = uiState.hasExerciseCapabilities,
+                isTrackingAnotherExercise = uiState.isTrackingAnotherExercise
+            )
         }
     }
 }
