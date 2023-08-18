@@ -9,4 +9,44 @@
     <string name="title_activity_presentation._main">presentation.MainActivity</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="complication_label">Example complication</string>
+
+    <!-- Screens -->
+    <string name="preparing_exercise">Preparing exercise</string>
+    <string name="start">Start</string>
+    <string name="start_workout">Start Workout</string>
+    <string name="starting_up">Starting up</string>
+    <string name="not_avail">Exercise not available on this device</string>
+
+    <!-- GPS -->
+    <string name="GPS_acquiring">GPS Acquiring</string>
+    <string name="GPS_acquired">GPS Acquired!</string>
+    <string name="GPS_disabled">GPS Disabled on Device</string>
+    <string name="GPS_unavailable">GPS Unavailable</string>
+    <string name="GPS_initializing">GPS Initializing</string>
+
+    <!-- Summary Screen -->
+    <string name="workout_complete">Workout complete!</string>
+    <string name="duration"> Duration </string>
+    <string name="distance"> Distance </string>
+    <string name="speed"> Speed </string>
+    <string name="pace"> Pace </string>
+    <string name="steps"> Steps </string>
+    <string name="calories"> Calories </string>
+    <string name="avgSpd"> Avg. speed </string>
+    <string name="avgPace"> Avg. pace </string>
+    <string name="avgCad"> Avg. cadence </string>
+    <string name="avgHR"> Avg. heart rate </string>
+    <string name="restart">Restart</string>
+
+    <!-- Descriptions -->
+    <string name="laps">Laps</string>
+    <string name="startOrEnd">Start or End</string>
+    <string name="pauseOrResume">Pause or Resume</string>
+    <string name="heart_rate">Heart Rate</string>
+
+    <!-- Exercise in Progress Dialog -->
+    <string name="confirm">Confirm</string>
+    <string name="deny">Deny</string>
+    <string name="exercise_in_progress">Exercise In Progress</string>
+    <string name="ending_continue">Ending other exercise. Continue?</string>
 </resources>
