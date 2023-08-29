@@ -6,6 +6,11 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.health.services.client.data.DataType
+import androidx.health.services.client.data.ExerciseGoal
+import androidx.health.services.client.data.ExerciseGoalType
+import androidx.health.services.client.data.ExerciseType
+import androidx.health.services.client.data.ExerciseTypeCapabilities
 import androidx.health.services.client.data.LocationAvailability
 import com.example.pokerunwearos.service.ActiveDurationUpdate
 import com.example.pokerunwearos.service.ForegroundService
@@ -22,17 +27,25 @@ class HealthServicesRepository @Inject constructor(
 
     private var exerciseService: ForegroundService? = null
 
-    suspend fun hasExerciseCapability(): Boolean = getExerciseCapabilities() != null
-
-    private suspend fun getExerciseCapabilities() = exerciseClientManager.getExerciseCapabilities()
+    suspend fun getExerciseCapabilities() = exerciseClientManager.getExerciseCapabilities()
 
     suspend fun isExerciseInProgress(): Boolean = exerciseClientManager.isExerciseInProgress()
 
     suspend fun isTrackingExerciseInAnotherApp() =
         exerciseClientManager.isTrackingExerciseInAnotherApp()
 
-    fun prepareExercise() = exerciseService?.prepareExercise()
-    fun startExercise() = exerciseService?.startExercise()
+    fun supportsGoalType(
+        capabilities: ExerciseTypeCapabilities?,
+        exerciseGoalType: ExerciseGoalType?,
+        dataType: DataType<*, *>
+    ) = exerciseClientManager.supportsGoalType(capabilities, exerciseGoalType, dataType)
+
+    fun prepareExercise(exerciseType: ExerciseType) = exerciseService?.prepareExercise(exerciseType)
+    fun startExercise(
+        exerciseType: ExerciseType,
+        exerciseGoal: ExerciseGoal<Double>?
+    ) = exerciseService?.startExercise(exerciseType, exerciseGoal)
+
     fun pauseExercise() = exerciseService?.pauseExercise()
     fun endExercise() = exerciseService?.endExercise()
     fun resumeExercise() = exerciseService?.resumeExercise()

@@ -3,10 +3,17 @@ package com.example.pokerunwearos
 sealed class Screens(
     val route: String
 ) {
-    object ExerciseScreen : Screens("exercise")
     object ExerciseNotAvailable : Screens("exerciseNotAvail")
-    object StartingUp : Screens("startingUp")
-    object PreparingExercise : Screens("preparingExercise")
-    object SummaryScreen : Screens("summaryScreen")
+    object StartWorkoutScreen : Screens("startWorkout")
+    object ExerciseSelectionScreen : Screens("selectExercise")
+    object MissionSelectionScreen : Screens("selectMission")
+
+    object PreWorkoutScreen : Screens("preWorkout")
+    object TrackWorkoutScreen : Screens("trackWorkout")
+
+    object PostWorkoutScreen : Screens("postWorkout")
+    object MissionScreen: Screens("mission")
+
+
 }
 

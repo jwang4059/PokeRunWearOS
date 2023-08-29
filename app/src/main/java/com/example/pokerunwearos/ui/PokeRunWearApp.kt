@@ -2,7 +2,8 @@ package com.example.pokerunwearos.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.health.services.client.data.DataType
+import androidx.health.services.client.data.ExerciseGoalType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -14,26 +15,95 @@ import com.example.pokerunwearos.Screens
 
 @Composable
 fun PokeRunWearApp(
-    navController: NavHostController, startDestination: String
+    viewModel: PokeRunViewModel, navController: NavHostController, startDestination: String
 ) {
+
+
     SwipeDismissableNavHost(
         navController = navController, startDestination = startDestination
     ) {
-        composable(Screens.PreparingExercise.route) {
-            val viewModel = hiltViewModel<PokeRunViewModel>()
-            val serviceState by viewModel.exerciseServiceState
-            val permissions = viewModel.permissions
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            PreparingExercise(
-                onUnavailable = {
-                    navController.navigate(Screens.ExerciseNotAvailable.route) {
+        composable(Screens.StartWorkoutScreen.route) {
+            val exerciseUiState by viewModel.exerciseUiState.collectAsStateWithLifecycle()
+            StartWorkoutScreen(hasCapabilities = {
+                viewModel.hasExerciseCapabilities(
+                    exerciseUiState.exerciseCapabilities
+                )
+            }, onUnavailable = {
+                navController.navigate(Screens.ExerciseNotAvailable.route) {
+                    popUpTo(navController.graph.id) {
+                        inclusive = false
+                    }
+                }
+            }, navigateToExerciseSelection = {
+                navController.navigate(Screens.ExerciseSelectionScreen.route)
+            })
+        }
+
+        composable(Screens.ExerciseSelectionScreen.route) {
+            val exerciseUiState by viewModel.exerciseUiState.collectAsStateWithLifecycle()
+            val appUiState by viewModel.appUiState.collectAsStateWithLifecycle()
+
+            ExerciseSelectionScreen(
+                isTrackingAnotherExercise = exerciseUiState.isTrackingAnotherExercise,
+                setExercise = { exerciseType ->
+                    viewModel.setExercise(exerciseType)
+                },
+                navigateToNextScreen = {
+                    if (viewModel.supportsGoalType(
+                            exerciseUiState.exerciseCapabilities?.get(
+                                appUiState.currentExerciseType
+                            ), ExerciseGoalType.ONE_TIME_GOAL, DataType.DISTANCE_TOTAL
+                        )
+                    ) {
+                        navController.navigate(Screens.MissionSelectionScreen.route)
+                    } else {
+                        navController.navigate(
+                            Screens.PreWorkoutScreen.route
+                        )
+                    }
+
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(Screens.MissionSelectionScreen.route) {
+            MissionSelectionScreen(
+                setExerciseGoal = { distance ->
+                    viewModel.setExerciseGoal(distance)
+                },
+                navigateToSummary = {
+                    navController.navigate(Screens.PreWorkoutScreen.route)
+                },
+                onBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(Screens.MissionScreen.route) {
+            val appUiState by viewModel.appUiState.collectAsStateWithLifecycle()
+
+            MissionScreen(onBack = { navController.popBackStack() },
+                currentExerciseGoal = appUiState.currentExerciseGoal,
+                setExerciseGoal = { distance ->
+                    viewModel.setExerciseGoal(distance)
+                },
+                navigateToPrepareScreen = {
+                    navController.navigate(Screens.PreWorkoutScreen.route) {
                         popUpTo(navController.graph.id) {
-                            inclusive = false
+                            inclusive = true
                         }
                     }
-                },
+                })
+        }
+
+        composable(Screens.PreWorkoutScreen.route) {
+            val serviceState by viewModel.exerciseServiceState
+            val permissions = viewModel.permissions
+            val appUiState by viewModel.appUiState.collectAsStateWithLifecycle()
+
+            PreWorkoutScreen(
                 onStart = {
-                    navController.navigate(Screens.ExerciseScreen.route) {
+                    navController.navigate(Screens.TrackWorkoutScreen.route) {
                         popUpTo(navController.graph.id) {
                             inclusive = false
                         }
@@ -43,15 +113,14 @@ fun PokeRunWearApp(
                 prepareExercise = { viewModel.prepareExercise() },
                 serviceState = serviceState,
                 permissions = permissions,
-                hasCapabilities = uiState.hasExerciseCapabilities,
-                isTrackingAnotherExercise = uiState.isTrackingAnotherExercise,
+                exerciseType = appUiState.currentExerciseType,
+                exerciseGoal = appUiState.currentExerciseGoal,
             )
         }
 
-        composable(Screens.ExerciseScreen.route) {
-            val viewModel = hiltViewModel<PokeRunViewModel>()
+        composable(Screens.TrackWorkoutScreen.route) {
             val serviceState by viewModel.exerciseServiceState
-            ExerciseScreen(
+            TrackWorkoutScreen(
                 onPauseClick = { viewModel.pauseExercise() },
                 onEndClick = { viewModel.endExercise() },
                 onResumeClick = { viewModel.resumeExercise() },
@@ -62,18 +131,18 @@ fun PokeRunWearApp(
         }
 
         composable(
-            Screens.SummaryScreen.route + "/{averageHeartRate}/{totalDistance}/{totalCalories}/{elapsedTime}",
+            Screens.PostWorkoutScreen.route + "/{averageHeartRate}/{totalDistance}/{totalCalories}/{elapsedTime}",
             arguments = listOf(navArgument("averageHeartRate") { type = NavType.StringType },
                 navArgument("totalDistance") { type = NavType.StringType },
                 navArgument("totalCalories") { type = NavType.StringType },
                 navArgument("elapsedTime") { type = NavType.StringType })
         ) {
-            SummaryScreen(averageHeartRate = it.arguments?.getString("averageHeartRate")!!,
+            PostWorkoutScreen(averageHeartRate = it.arguments?.getString("averageHeartRate")!!,
                 totalDistance = it.arguments?.getString("totalDistance")!!,
                 totalCalories = it.arguments?.getString("totalCalories")!!,
                 elapsedTime = it.arguments?.getString("elapsedTime")!!,
                 onRestartClick = {
-                    navController.navigate(Screens.PreparingExercise.route) {
+                    navController.navigate(Screens.StartWorkoutScreen.route) {
                         popUpTo(navController.graph.id) {
                             inclusive = true
                         }

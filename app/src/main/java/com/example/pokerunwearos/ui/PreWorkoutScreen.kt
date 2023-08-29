@@ -4,16 +4,21 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.health.services.client.data.ExerciseGoal
+import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.LocationAvailability
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.AutoCenteringParams
@@ -33,22 +38,18 @@ import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.wear.compose.material.scrollAway
 import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.ServiceState
-import com.example.pokerunwearos.ui.component.ExerciseInProgressAlert
+import com.example.pokerunwearos.ui.component.SummaryFormat
 import kotlinx.coroutines.launch
 
 @Composable
-fun PreparingExercise(
-    onUnavailable: () -> Unit = {},
+fun PreWorkoutScreen(
     onStart: () -> Unit = {},
     prepareExercise: () -> Unit,
     serviceState: ServiceState,
     permissions: Array<String>,
-    hasCapabilities: Boolean,
-    isTrackingAnotherExercise: Boolean,
+    exerciseType: ExerciseType,
+    exerciseGoal: ExerciseGoal<Double>?,
 ) {
-    if (!hasCapabilities) onUnavailable()
-    if (isTrackingAnotherExercise) ExerciseInProgressAlert(isTrackingExercise = true)
-
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
@@ -62,8 +63,8 @@ fun PreparingExercise(
     when (serviceState) {
         is ServiceState.Connected -> {
             val location by serviceState.locationAvailabilityState.collectAsStateWithLifecycle()
-            val gpsAcquired =
-                location == LocationAvailability.ACQUIRED_TETHERED || location == LocationAvailability.ACQUIRED_UNTETHERED
+//            val gpsAcquired =
+//                location == LocationAvailability.ACQUIRED_TETHERED || location == LocationAvailability.ACQUIRED_UNTETHERED
 
             LaunchedEffect(Unit) {
                 launch {
@@ -93,20 +94,56 @@ fun PreparingExercise(
                     autoCentering = AutoCenteringParams(itemIndex = 0),
                 ) {
                     item {
-                        Column {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = updatePrepareLocationStatus(locationAvailability = location),
+                                text = "Workout Summary",
                             )
+                        }
+                    }
+                    item {
+                        SummaryFormat(
+                            value = exerciseType.name,
+                            metric = "Exercise Type",
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    item {
+                        if (exerciseGoal != null) {
+                            SummaryFormat(
+                                value = "%s meters".format(exerciseGoal.dataTypeCondition.threshold.toString()),
+                                metric = "Exercise Goal",
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                    item {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Button(
                                 onClick = { onStart() },
-                                enabled = gpsAcquired,
+                                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primaryVariant),
                                 modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = stringResource(id = R.string.start)
+                                    contentDescription = stringResource(id = R.string.start),
                                 )
                             }
+                        }
+                    }
+                    item {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = updatePrepareLocationStatus(locationAvailability = location),
+                            )
                         }
                     }
                 }

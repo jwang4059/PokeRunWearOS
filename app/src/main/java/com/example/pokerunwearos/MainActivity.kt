@@ -29,14 +29,14 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             val destination = when (pokeRunViewModel.isExerciseInProgress()) {
-                false -> Screens.PreparingExercise.route
-                true -> Screens.ExerciseScreen.route
+                false -> Screens.StartWorkoutScreen.route
+                true -> Screens.TrackWorkoutScreen.route
             }
 
             setContent {
                 navController = rememberSwipeDismissableNavController()
                 PokeRunWearOSTheme {
-                    PokeRunWearApp(navController, startDestination = destination)
+                    PokeRunWearApp(pokeRunViewModel, navController, startDestination = destination)
                 }
             }
         }

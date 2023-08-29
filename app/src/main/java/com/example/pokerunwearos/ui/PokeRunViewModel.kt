@@ -2,21 +2,36 @@ package com.example.pokerunwearos.ui
 
 import android.Manifest
 import androidx.compose.runtime.MutableState
+import androidx.health.services.client.data.ComparisonType
+import androidx.health.services.client.data.DataType
+import androidx.health.services.client.data.DataTypeCondition
+import androidx.health.services.client.data.ExerciseGoal
+import androidx.health.services.client.data.ExerciseGoalType
+import androidx.health.services.client.data.ExerciseType
+import androidx.health.services.client.data.ExerciseTypeCapabilities
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokerunwearos.data.HealthServicesRepository
 import com.example.pokerunwearos.data.ServiceState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class PokeRunUiState(
-    val hasExerciseCapabilities: Boolean = true,
+data class ExerciseUiState(
+    val exerciseCapabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>? = mutableMapOf(),
     val isTrackingAnotherExercise: Boolean = false,
+)
+
+data class PokeRunUiState(
+    val currentExerciseType: ExerciseType = ExerciseType.RUNNING,
+    val currentExerciseGoal: ExerciseGoal<Double>? = null,
 )
 
 @HiltViewModel
@@ -31,19 +46,19 @@ class PokeRunViewModel @Inject constructor(
         Manifest.permission.ACTIVITY_RECOGNITION
     )
 
-    val uiState: StateFlow<PokeRunUiState> = flow {
+    val exerciseUiState: StateFlow<ExerciseUiState> = flow {
         emit(
-            PokeRunUiState(
-                hasExerciseCapabilities = healthServicesRepository.hasExerciseCapability(),
+            ExerciseUiState(
+                exerciseCapabilities = healthServicesRepository.getExerciseCapabilities(),
                 isTrackingAnotherExercise = healthServicesRepository.isTrackingExerciseInAnotherApp(),
             )
         )
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(3_000),
-        PokeRunUiState()
+        viewModelScope, SharingStarted.WhileSubscribed(3_000), ExerciseUiState()
     )
 
+    private val _appUiState = MutableStateFlow(PokeRunUiState())
+    val appUiState: StateFlow<PokeRunUiState> = _appUiState.asStateFlow()
 
     private var _exerciseServiceState: MutableState<ServiceState> =
         healthServicesRepository.serviceState
@@ -59,8 +74,49 @@ class PokeRunViewModel @Inject constructor(
         return healthServicesRepository.isExerciseInProgress()
     }
 
-    fun prepareExercise() = viewModelScope.launch { healthServicesRepository.prepareExercise() }
-    fun startExercise() = viewModelScope.launch { healthServicesRepository.startExercise() }
+    fun hasExerciseCapabilities(
+        capabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>?,
+        exerciseType: ExerciseType? = null
+    ): Boolean {
+        return if (exerciseType != null) capabilities?.get(exerciseType) != null else capabilities != null
+    }
+
+    fun setExercise(exerciseType: ExerciseType) {
+        _appUiState.update { currentState -> currentState.copy(currentExerciseType = exerciseType) }
+    }
+
+    fun setExerciseGoal(distanceThreshold: Double) {
+        _appUiState.update { currentState ->
+            currentState.copy(
+                currentExerciseGoal = ExerciseGoal.createOneTimeGoal(
+                    DataTypeCondition(
+                        dataType = DataType.DISTANCE_TOTAL,
+                        threshold = distanceThreshold,
+                        comparisonType = ComparisonType.GREATER_THAN_OR_EQUAL
+                    )
+                )
+            )
+        }
+    }
+
+    fun supportsGoalType(
+        capabilities: ExerciseTypeCapabilities?,
+        exerciseGoalType: ExerciseGoalType?,
+        dataType: DataType<*, *>
+    ) = healthServicesRepository.supportsGoalType(capabilities, exerciseGoalType, dataType)
+
+    fun prepareExercise() = viewModelScope.launch {
+        healthServicesRepository.prepareExercise(
+            appUiState.value.currentExerciseType
+        )
+    }
+
+    fun startExercise() = viewModelScope.launch {
+        healthServicesRepository.startExercise(
+            appUiState.value.currentExerciseType, appUiState.value.currentExerciseGoal
+        )
+    }
+
     fun pauseExercise() = viewModelScope.launch { healthServicesRepository.pauseExercise() }
     fun endExercise() = viewModelScope.launch { healthServicesRepository.endExercise() }
     fun resumeExercise() = viewModelScope.launch { healthServicesRepository.resumeExercise() }

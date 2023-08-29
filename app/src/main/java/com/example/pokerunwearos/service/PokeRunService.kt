@@ -14,7 +14,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.health.services.client.data.DataPointContainer
 import androidx.health.services.client.data.ExerciseEndReason
+import androidx.health.services.client.data.ExerciseGoal
 import androidx.health.services.client.data.ExerciseState
+import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseUpdate
 import androidx.health.services.client.data.LocationAvailability
 import androidx.lifecycle.Lifecycle
@@ -72,18 +74,18 @@ class ForegroundService : LifecycleService() {
     /**
      * Prepare exercise in this service's coroutine context.
      */
-    fun prepareExercise() {
+    fun prepareExercise(exerciseType: ExerciseType) {
         lifecycleScope.launch {
-            exerciseClientManager.prepareExercise()
+            exerciseClientManager.prepareExercise(exerciseType)
         }
     }
 
     /**
      * Start exercise in this service's coroutine context.
      */
-    fun startExercise() {
+    fun startExercise(exerciseType: ExerciseType, exerciseGoal: ExerciseGoal<Double>?) {
         lifecycleScope.launch {
-            exerciseClientManager.startExercise()
+            exerciseClientManager.startExercise(exerciseType, exerciseGoal)
         }
         postOngoingActivityNotification()
     }

@@ -1,9 +1,12 @@
 package com.example.pokerunwearos.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Pause
@@ -18,8 +21,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.health.services.client.data.DataType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -42,7 +48,6 @@ import com.example.pokerunwearos.Screens
 import com.example.pokerunwearos.data.ServiceState
 import com.example.pokerunwearos.service.ExerciseStateChange
 import com.example.pokerunwearos.ui.component.formatCalories
-import com.example.pokerunwearos.ui.component.formatDistanceKm
 import com.example.pokerunwearos.ui.component.formatDistanceMi
 import com.example.pokerunwearos.ui.component.formatElapsedTime
 import com.example.pokerunwearos.ui.component.formatPaceMinPerMi
@@ -55,14 +60,14 @@ import java.time.Duration
 import kotlin.time.toKotlinDuration
 
 @Composable
-fun ExerciseScreen(
+fun TrackWorkoutScreen(
     onPauseClick: () -> Unit = {},
     onEndClick: () -> Unit = {},
     onResumeClick: () -> Unit = {},
     onStartClick: () -> Unit = {},
     serviceState: ServiceState,
     navController: NavHostController,
-    ) {
+) {
     val chronoTickJob = remember { mutableStateOf<Job?>(null) }
 
     when (serviceState) {
@@ -153,61 +158,127 @@ fun ExerciseScreen(
                         .background(MaterialTheme.colors.background),
                     autoCentering = AutoCenteringParams(itemIndex = 0),
                 ) {
+                    // Duration
                     item {
-                        Column {
-                            Text(text = stringResource(id = R.string.duration))
-                            Text(elapsedTime.value)
-                        }
-                    }
-
-                    item {
-                        Column {
-                            Text(text = stringResource(id = R.string.distance))
-                            if (distance != null) {
-                                Text(
-                                    formatDistanceMi(distance).toString()
-                                )
-                                tempDistance.value = distance
-                            } else {
-                                Text(
-                                    formatDistanceMi(tempDistance.value).toString()
-                                )
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row {
+                                Text(text = stringResource(id = R.string.duration))
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.large)
+                                    .background(MaterialTheme.colors.primaryVariant)
+                                    .padding(8.dp, 4.dp)
+                            ) {
+                                Text(elapsedTime.value)
                             }
                         }
                     }
 
+                    // Distance + Steps
                     item {
                         Column {
-                            Text(text = stringResource(id = R.string.steps))
-                            if (steps != null) {
-                                Text(
-                                    steps.toString()
-                                )
-                                tempSteps.value = steps
-                            } else {
-                                Text(
-                                    tempSteps.value.toString()
-                                )
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.distance),
+                                    )
+                                }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = stringResource(id = R.string.steps),
+                                        modifier = Modifier.padding(horizontal = 16.dp)
+                                    )
+                                }
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                            ) {
+                                val distanceStr =
+                                    if (distance != null) formatDistanceMi(distance).toString() else formatDistanceMi(
+                                        tempDistance.value
+                                    ).toString()
+
+                                if (distance != null) tempDistance.value = distance
+
+                                val stepsStr = steps?.toString() ?: tempSteps.value.toString()
+
+                                if (steps != null) tempSteps.value = steps
+
+                                Row(
+                                    modifier = Modifier
+                                        .clip(MaterialTheme.shapes.large)
+                                        .background(MaterialTheme.colors.primaryVariant)
+                                        .padding(8.dp, 4.dp)
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = distanceStr,
+                                        )
+                                    }
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = stepsStr,
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
 
+                    // Calories
                     item {
-                        Column {
-                            Text(text = stringResource(id = R.string.calories))
-                            if (calories != null) {
-                                Text(
-                                    formatCalories(calories).toString()
-                                )
-                                tempCalories.value = calories
-                            } else {
-                                Text(
-                                    formatCalories(tempCalories.value).toString()
-                                )
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            val caloriesStr =
+                                if (calories != null) formatCalories(calories).toString() else formatCalories(
+                                    tempCalories.value
+                                ).toString()
+
+                            if (calories != null) tempCalories.value = calories
+
+                            Row {
+                                Text(text = stringResource(id = R.string.calories))
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.large)
+                                    .background(MaterialTheme.colors.primaryVariant)
+                                    .padding(8.dp, 4.dp)
+                            ) {
+                                Text(caloriesStr)
                             }
                         }
                     }
 
+                    // Pace
                     item {
                         Column {
                             Text(text = stringResource(id = R.string.pace))
@@ -244,58 +315,59 @@ fun ExerciseScreen(
 //                    }
 
                     item {
-                        if (exerciseStateChange.exerciseState.isEnding) {
-
-                        navController.navigate(
-                            Screens.SummaryScreen.route + "/${tempAverageHeartRate.value.toInt()}/${
-                                formatDistanceKm(
-                                    tempDistance.value
-                                )
-                            }/${formatCalories(tempCalories.value)}/" + formatElapsedTime(
-                                activeDuration.toKotlinDuration(), true
-                            ).toString()
-                        ) { popUpTo(Screens.ExerciseScreen.route) { inclusive = true } }
-
-                        Button(onClick = { onStartClick() }) {
-                            Icon(
-                                imageVector = startOrEnd, contentDescription = stringResource(
-                                    id = R.string.startOrEnd
-                                )
-                            )
-                        }
-
-                        } else {
-                            Button(onClick = { onEndClick() }) {
-                                Icon(
-                                    imageVector = startOrEnd, contentDescription = stringResource(
-                                        id = R.string.startOrEnd
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (exerciseStateChange.exerciseState.isEnded || exerciseStateChange.exerciseState.isEnding) {
+                                Button(onClick = { onStartClick() }) {
+                                    Icon(
+                                        imageVector = startOrEnd,
+                                        contentDescription = stringResource(
+                                            id = R.string.startOrEnd
+                                        )
                                     )
-                                )
-                            }
+                                }
 
-                        }
-                    }
-
-                    item {
-                        if (exerciseStateChange.exerciseState.isPaused) {
-                            Button(onClick = {
-                                onResumeClick()
-                            }) {
-                                Icon(
-                                    imageVector = pauseOrResume,
-                                    contentDescription = stringResource(id = R.string.pauseOrResume)
-                                )
+                            } else {
+                                Button(onClick = {
+                                    onEndClick(); navController.navigate(
+                                    Screens.PostWorkoutScreen.route + "/${tempAverageHeartRate.value.toInt()}/${
+                                        formatDistanceMi(
+                                            tempDistance.value
+                                        )
+                                    }/${formatCalories(tempCalories.value)}/" + formatElapsedTime(
+                                        activeDuration.toKotlinDuration(), true
+                                    ).toString()
+                                ) { popUpTo(Screens.TrackWorkoutScreen.route) { inclusive = true } }
+                                }) {
+                                    Icon(
+                                        imageVector = startOrEnd,
+                                        contentDescription = stringResource(
+                                            id = R.string.startOrEnd
+                                        )
+                                    )
+                                }
                             }
-                        } else {
-                            Button(onClick = {
-                                onPauseClick()
-                            }) {
-                                Icon(
-                                    imageVector = pauseOrResume,
-                                    contentDescription = stringResource(id = R.string.pauseOrResume)
-                                )
+                            if (exerciseStateChange.exerciseState.isPaused) {
+                                Button(onClick = {
+                                    onResumeClick()
+                                }) {
+                                    Icon(
+                                        imageVector = pauseOrResume,
+                                        contentDescription = stringResource(id = R.string.pauseOrResume)
+                                    )
+                                }
+                            } else {
+                                Button(onClick = {
+                                    onPauseClick()
+                                }) {
+                                    Icon(
+                                        imageVector = pauseOrResume,
+                                        contentDescription = stringResource(id = R.string.pauseOrResume)
+                                    )
+                                }
                             }
-
                         }
                     }
                 }

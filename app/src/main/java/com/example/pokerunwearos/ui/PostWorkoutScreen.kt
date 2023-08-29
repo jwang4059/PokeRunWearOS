@@ -39,7 +39,7 @@ import com.example.pokerunwearos.ui.component.SummaryFormat
 import kotlinx.coroutines.launch
 
 @Composable
-fun SummaryScreen(
+fun PostWorkoutScreen(
     averageHeartRate: String,
     totalDistance: String,
     totalCalories: String,
@@ -48,7 +48,6 @@ fun SummaryScreen(
 ) {
     val listState = rememberScalingLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
 
     Scaffold(timeText = {
         TimeText(
@@ -133,7 +132,7 @@ fun SummaryScreen(
 @Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
 @Composable
 fun SummaryScreenPreview() {
-    SummaryScreen(averageHeartRate = "75.0",
+    PostWorkoutScreen(averageHeartRate = "75.0",
         totalDistance = "2 km",
         totalCalories = "100",
         elapsedTime = "17m01",

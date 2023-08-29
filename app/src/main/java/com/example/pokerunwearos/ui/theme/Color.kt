@@ -3,19 +3,15 @@ package com.example.pokerunwearos.ui.theme
 import androidx.compose.ui.graphics.Color
 import androidx.wear.compose.material.Colors
 
-val Purple200 = Color(0xFFBB86FC)
-val Purple500 = Color(0xFF6200EE)
-val Purple700 = Color(0xFF3700B3)
-val Teal200 = Color(0xFF03DAC5)
-val Red400 = Color(0xFFCF6679)
+val md_theme_dark_primary = Color(0xFFFFCC80)
+val md_theme_dark_secondary = Color(0xFFFF9800)
+val md_theme_dark_background = Color(0xFF64B5F6)
 
 internal val wearColorPalette: Colors = Colors(
-    primary = Purple200,
-    primaryVariant = Purple700,
-    secondary = Teal200,
-    secondaryVariant = Teal200,
-    error = Red400,
-    onPrimary = Color.Black,
+    primary = md_theme_dark_primary,
+    primaryVariant = Color.Gray,
+    error = Color.Red,
+    onPrimary = Color.White,
     onSecondary = Color.Black,
     onError = Color.Black
 )
