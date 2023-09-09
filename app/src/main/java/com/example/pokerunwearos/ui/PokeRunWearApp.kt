@@ -137,7 +137,9 @@ fun PokeRunWearApp(
                 navArgument("totalCalories") { type = NavType.StringType },
                 navArgument("elapsedTime") { type = NavType.StringType })
         ) {
-            PostWorkoutScreen(averageHeartRate = it.arguments?.getString("averageHeartRate")!!,
+            PostWorkoutScreen(
+                viewModel = viewModel,
+                averageHeartRate = it.arguments?.getString("averageHeartRate")!!,
                 totalDistance = it.arguments?.getString("totalDistance")!!,
                 totalCalories = it.arguments?.getString("totalCalories")!!,
                 elapsedTime = it.arguments?.getString("elapsedTime")!!,

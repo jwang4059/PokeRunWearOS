@@ -205,7 +205,7 @@ class ExerciseClientManager @Inject constructor(
 
 
     private companion object {
-        val EXERCISE_TYPES = listOf<ExerciseType>(
+        val EXERCISE_TYPES = listOf(
             ExerciseType.RUNNING, ExerciseType.RUNNING_TREADMILL, ExerciseType.WALKING
         )
 

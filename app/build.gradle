@@ -3,7 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'com.google.dagger.hilt.android'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.8.21'
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
 }
 
 android {
@@ -107,9 +107,9 @@ dependencies {
     // Retrofit with Kotlin serialization Converter
     implementation "com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0"
     // Kotlin serialization
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0"
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     // Coil
-    implementation "io.coil-kt:coil-compose:2.3.0"
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
     // Default
 //    implementation 'com.google.android.gms:play-services-wearable:17.1.0'

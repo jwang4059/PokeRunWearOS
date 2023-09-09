@@ -11,8 +11,10 @@ import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseTypeCapabilities
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pokerunwearos.data.DataRepository
 import com.example.pokerunwearos.data.HealthServicesRepository
 import com.example.pokerunwearos.data.ServiceState
+import com.example.pokerunwearos.model.Pokemon
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,7 +38,8 @@ data class PokeRunUiState(
 
 @HiltViewModel
 class PokeRunViewModel @Inject constructor(
-    private val healthServicesRepository: HealthServicesRepository
+    private val healthServicesRepository: HealthServicesRepository,
+    private val dataRepository: DataRepository
 ) : ViewModel() {
 
     val permissions = arrayOf(
@@ -120,4 +123,9 @@ class PokeRunViewModel @Inject constructor(
     fun pauseExercise() = viewModelScope.launch { healthServicesRepository.pauseExercise() }
     fun endExercise() = viewModelScope.launch { healthServicesRepository.endExercise() }
     fun resumeExercise() = viewModelScope.launch { healthServicesRepository.resumeExercise() }
+
+    suspend fun fetchData(): Pokemon {
+        return dataRepository.fetchData()
+    }
 }
+

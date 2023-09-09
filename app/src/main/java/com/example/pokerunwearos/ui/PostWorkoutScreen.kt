@@ -10,15 +10,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.AutoCenteringParams
 import androidx.wear.compose.material.Button
@@ -34,18 +37,37 @@ import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.wear.compose.material.scrollAway
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.pokerunwearos.R
+import com.example.pokerunwearos.model.Pokemon
 import com.example.pokerunwearos.ui.component.SummaryFormat
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
 @Composable
 fun PostWorkoutScreen(
+    viewModel: PokeRunViewModel,
     averageHeartRate: String,
     totalDistance: String,
     totalCalories: String,
     elapsedTime: String,
     onRestartClick: () -> Unit
 ) {
+    var pokemonUiState: PokemonUiState by remember { mutableStateOf(PokemonUiState.Loading) }
+
+    LaunchedEffect(Unit) {
+        pokemonUiState = PokemonUiState.Loading
+        pokemonUiState = try {
+            PokemonUiState.Success(viewModel.fetchData())
+        } catch (e: IOException) {
+            PokemonUiState.Error
+        } catch (e: HttpException) {
+            PokemonUiState.Error
+        }
+    }
+
     val listState = rememberScalingLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -80,6 +102,19 @@ fun PostWorkoutScreen(
 
             ) {
             item { ListHeader { Text(stringResource(id = R.string.workout_complete)) } }
+            item {
+                when (pokemonUiState) {
+                    is PokemonUiState.Success -> AsyncImage(
+                        model = ImageRequest.Builder(context = LocalContext.current)
+                            .data((pokemonUiState as PokemonUiState.Success).pokemon.sprites.frontDefault)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "pokemon",
+                        contentScale = ContentScale.FillBounds
+                    )
+                    else -> {}
+                }
+            }
             item {
                 SummaryFormat(
                     value = elapsedTime,
@@ -129,12 +164,18 @@ fun PostWorkoutScreen(
     }
 }
 
-@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
-@Composable
-fun SummaryScreenPreview() {
-    PostWorkoutScreen(averageHeartRate = "75.0",
-        totalDistance = "2 km",
-        totalCalories = "100",
-        elapsedTime = "17m01",
-        onRestartClick = {})
+sealed interface PokemonUiState {
+    data class Success(val pokemon: Pokemon) : PokemonUiState
+    object Error : PokemonUiState
+    object Loading : PokemonUiState
 }
+
+//@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)
+//@Composable
+//fun SummaryScreenPreview() {
+//    PostWorkoutScreen(averageHeartRate = "75.0",
+//        totalDistance = "2 km",
+//        totalCalories = "100",
+//        elapsedTime = "17m01",
+//        onRestartClick = {})
+//}
