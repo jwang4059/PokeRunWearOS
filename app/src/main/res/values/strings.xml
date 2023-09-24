@@ -17,6 +17,10 @@
     <string name="starting_up">Starting up</string>
     <string name="not_avail">Exercise not available on this device</string>
 
+    <!--    Heart Rate-->
+    <string name="icon">Icon</string>
+    <string name="no_hr_reading">--</string>
+
     <!-- GPS -->
     <string name="GPS_acquiring">GPS Acquiring</string>
     <string name="GPS_acquired">GPS Acquired!</string>

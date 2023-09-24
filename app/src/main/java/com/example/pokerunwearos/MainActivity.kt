@@ -10,12 +10,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
-import com.example.pokerunwearos.ui.PokeRunViewModel
-import com.example.pokerunwearos.ui.PokeRunWearApp
-import com.example.pokerunwearos.ui.theme.PokeRunWearOSTheme
+import com.example.pokerunwearos.presentation.navigation.PokeRunDestinations
+import com.example.pokerunwearos.presentation.ui.theme.PokeRunWearOSTheme
+import com.example.pokerunwearos.presentation.viewmodels.PokeRunViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -25,18 +26,26 @@ class MainActivity : ComponentActivity() {
 
     private val pokeRunViewModel by viewModels<PokeRunViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Handle the splash screen transition.
+        installSplashScreen()
+
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
             val destination = when (pokeRunViewModel.isExerciseInProgress()) {
-                false -> Screens.StartWorkoutScreen.route
-                true -> Screens.TrackWorkoutScreen.route
+                false -> PokeRunDestinations.StartScreen.route
+                true -> PokeRunDestinations.TrackWorkoutScreen.route
             }
 
             setContent {
                 navController = rememberSwipeDismissableNavController()
+
                 PokeRunWearOSTheme {
-                    PokeRunWearApp(pokeRunViewModel, navController, startDestination = destination)
+                    PokeRunWearApp(
+                        viewModel = pokeRunViewModel,
+                        navController = navController,
+                        startDestination = destination
+                    )
                 }
             }
         }
