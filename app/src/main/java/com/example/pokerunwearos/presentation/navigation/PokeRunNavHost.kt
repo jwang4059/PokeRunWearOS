@@ -16,6 +16,7 @@ import com.example.pokerunwearos.presentation.composables.PostWorkoutScreen
 import com.example.pokerunwearos.presentation.composables.PreWorkoutScreen
 import com.example.pokerunwearos.presentation.composables.StartScreen
 import com.example.pokerunwearos.presentation.composables.TrackWorkoutScreen
+import com.example.pokerunwearos.presentation.ui.utils.toExerciseType
 import com.example.pokerunwearos.presentation.viewmodels.PokeRunViewModel
 import com.example.pokerunwearos.presentation.viewmodels.PostWorkoutViewModel
 import com.example.pokerunwearos.presentation.viewmodels.StartScreenViewModel
@@ -61,7 +62,7 @@ fun PokeRunNavHost(
                 navigateToNextScreen = {
                     if (viewModel.supportsGoalType(
                             uiState.exerciseCapabilities?.get(
-                                viewModel.exerciseTypes[uiState.currentExerciseType]
+                                uiState.currentExerciseType?.toExerciseType()
                             ), ExerciseGoalType.ONE_TIME_GOAL, DataType.DISTANCE_TOTAL
                         )
                     ) {
@@ -147,13 +148,16 @@ fun PokeRunNavHost(
             val postWorkoutViewModel = hiltViewModel<PostWorkoutViewModel>()
             val uiState by postWorkoutViewModel.uiState.collectAsStateWithLifecycle()
 
-            PostWorkoutScreen(workout = uiState, fetchPokemon = postWorkoutViewModel::fetchData, onRestartClick = {
-                navController.navigate(PokeRunDestinations.StartScreen.route) {
-                    popUpTo(navController.graph.id) {
-                        inclusive = true
+            PostWorkoutScreen(
+                workout = uiState,
+                fetchPokemon = postWorkoutViewModel::fetchData,
+                onRestartClick = {
+                    navController.navigate(PokeRunDestinations.StartScreen.route) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
                     }
-                }
-            })
+                })
         }
     }
 }

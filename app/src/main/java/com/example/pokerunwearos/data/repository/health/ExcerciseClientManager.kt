@@ -6,6 +6,7 @@ import androidx.health.services.client.HealthServicesClient
 import androidx.health.services.client.data.Availability
 import androidx.health.services.client.data.ComparisonType
 import androidx.health.services.client.data.DataType
+import androidx.health.services.client.data.DeltaDataType
 import androidx.health.services.client.data.ExerciseConfig
 import androidx.health.services.client.data.ExerciseGoal
 import androidx.health.services.client.data.ExerciseGoalType
@@ -78,7 +79,10 @@ class ExerciseClientManager @Inject constructor(
         Log.d(TAG, "Starting %s".format(exerciseType.name))
 
         if (exerciseGoal != null) {
-            Log.d(TAG, "Current goal is %s meters".format(exerciseGoal.dataTypeCondition.threshold.toString()))
+            Log.d(
+                TAG,
+                "Current goal is %s meters".format(exerciseGoal.dataTypeCondition.threshold.toString())
+            )
         } else {
             Log.d(TAG, "No goal for workout")
         }
@@ -125,11 +129,16 @@ class ExerciseClientManager @Inject constructor(
      */
     suspend fun prepareExercise(exerciseType: ExerciseType) {
         Log.d(TAG, "Preparing %s".format(exerciseType.name))
-        val warmUpConfig = WarmUpConfig(
-            exerciseType, setOf(
-                DataType.HEART_RATE_BPM, DataType.LOCATION
-            )
+        val dataTypes = mutableSetOf<DeltaDataType<*, *>>(
+            DataType.HEART_RATE_BPM
         )
+
+        if (exerciseType != ExerciseType.RUNNING_TREADMILL) dataTypes.add(DataType.LOCATION)
+
+        val warmUpConfig = WarmUpConfig(
+            exerciseType, dataTypes
+        )
+
         try {
             exerciseClient.prepareExerciseAsync(warmUpConfig).await()
         } catch (e: Exception) {

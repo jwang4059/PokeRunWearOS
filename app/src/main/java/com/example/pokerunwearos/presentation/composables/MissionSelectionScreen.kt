@@ -110,6 +110,7 @@ fun MissionSelectionScreen(
                 ) {
                     Button(
                         onClick = {
+                            setExerciseGoal(0.0)
                             navigateToSummary()
                         }, modifier = Modifier.fillMaxWidth()
                     ) {

@@ -45,13 +45,16 @@ import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.wear.compose.material.scrollAway
 import com.example.pokerunwearos.R
-import com.example.pokerunwearos.data.repository.health.ServiceState
 import com.example.pokerunwearos.data.models.Workout
+import com.example.pokerunwearos.data.repository.health.ServiceState
 import com.example.pokerunwearos.presentation.service.ExerciseStateChange
+import com.example.pokerunwearos.presentation.ui.utils.ElapsedTime
+import com.example.pokerunwearos.presentation.ui.utils.MeasurementUnit
 import com.example.pokerunwearos.presentation.ui.utils.formatCalories
-import com.example.pokerunwearos.presentation.ui.utils.formatDistanceMi
+import com.example.pokerunwearos.presentation.ui.utils.formatDistance
 import com.example.pokerunwearos.presentation.ui.utils.formatElapsedTime
 import com.example.pokerunwearos.presentation.ui.utils.formatPaceMinPerMi
+import com.example.pokerunwearos.presentation.ui.utils.toFormattedString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -122,7 +125,7 @@ fun TrackWorkoutScreen(
             val elapsedTime = remember {
                 derivedStateOf {
                     formatElapsedTime(
-                        activeDuration.toKotlinDuration(), true
+                        ElapsedTime.ElapsedTimeDuration(activeDuration.toKotlinDuration()), true
                     ).toString()
                 }
             }
@@ -161,6 +164,24 @@ fun TrackWorkoutScreen(
                         .background(MaterialTheme.colors.background),
                     autoCentering = AutoCenteringParams(itemIndex = 0),
                 ) {
+                    // ExerciseType
+                    item {
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row {
+                                if (exerciseConfig != null) {
+                                    Text(
+                                        text = exerciseConfig.exerciseType.toFormattedString(),
+                                        color = MaterialTheme.colors.secondary,
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     // Duration
                     item {
                         Column(
@@ -213,8 +234,11 @@ fun TrackWorkoutScreen(
                                 horizontalArrangement = Arrangement.Center,
                             ) {
                                 val distanceStr =
-                                    if (distance != null) formatDistanceMi(distance).toString() else formatDistanceMi(
-                                        tempDistance.value
+                                    if (distance != null) formatDistance(
+                                        distance,
+                                        MeasurementUnit.IMPERIAL
+                                    ).toString() else formatDistance(
+                                        tempDistance.value, MeasurementUnit.IMPERIAL
                                     ).toString()
 
                                 if (distance != null) tempDistance.value = distance

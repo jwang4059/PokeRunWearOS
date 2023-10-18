@@ -42,8 +42,10 @@ import coil.request.ImageRequest
 import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.models.Pokemon
 import com.example.pokerunwearos.data.models.Workout
+import com.example.pokerunwearos.presentation.ui.utils.ElapsedTime
+import com.example.pokerunwearos.presentation.ui.utils.MeasurementUnit
 import com.example.pokerunwearos.presentation.ui.utils.formatCalories
-import com.example.pokerunwearos.presentation.ui.utils.formatDistanceMi
+import com.example.pokerunwearos.presentation.ui.utils.formatDistance
 import com.example.pokerunwearos.presentation.ui.utils.formatElapsedTime
 import com.example.pokerunwearos.presentation.ui.widgets.SummaryFormat
 import com.example.pokerunwearos.presentation.viewmodels.PokemonUiState
@@ -117,7 +119,7 @@ fun PostWorkoutScreen(
             item {
                 if (workout != null) {
                     SummaryFormat(
-                        value = formatElapsedTime(workout.timeMillis, true).toString(),
+                        value = formatElapsedTime(ElapsedTime.ElapsedTimeLong(workout.timeMillis), true).toString(),
                         metric = stringResource(id = R.string.duration),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -135,7 +137,7 @@ fun PostWorkoutScreen(
             item {
                 if (workout != null) {
                     SummaryFormat(
-                        value = formatDistanceMi(workout.distance).toString(),
+                        value = formatDistance(workout.distance, MeasurementUnit.IMPERIAL).toString(),
                         metric = stringResource(id = R.string.distance),
                         modifier = Modifier.fillMaxWidth()
                     )

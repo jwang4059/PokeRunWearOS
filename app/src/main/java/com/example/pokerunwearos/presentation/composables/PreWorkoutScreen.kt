@@ -37,6 +37,7 @@ import androidx.wear.compose.material.scrollAway
 import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.repository.health.ServiceState
 import com.example.pokerunwearos.presentation.ui.utils.RUNNING
+import com.example.pokerunwearos.presentation.ui.utils.TREADMILL
 import com.example.pokerunwearos.presentation.ui.widgets.SummaryFormat
 import kotlinx.coroutines.launch
 
@@ -110,7 +111,7 @@ fun PreWorkoutScreen(
                         )
                     }
                     item {
-                        if (exerciseGoal != null) {
+                        if (exerciseGoal != null && exerciseGoal != 0.0) {
                             SummaryFormat(
                                 value = "%s meters".format(exerciseGoal),
                                 metric = "Exercise Goal",
@@ -136,13 +137,15 @@ fun PreWorkoutScreen(
                         }
                     }
                     item {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = updatePrepareLocationStatus(locationAvailability = location),
-                            )
+                        if (exerciseType != TREADMILL) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = updatePrepareLocationStatus(locationAvailability = location),
+                                )
+                            }
                         }
                     }
                 }
