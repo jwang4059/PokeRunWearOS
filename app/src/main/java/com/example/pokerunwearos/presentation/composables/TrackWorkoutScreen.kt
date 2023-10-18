@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.health.services.client.data.ComparisonType
@@ -38,12 +40,10 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.rememberScalingLazyListState
-import androidx.wear.compose.material.scrollAway
 import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.models.Workout
 import com.example.pokerunwearos.data.repository.health.ServiceState
@@ -146,12 +146,7 @@ fun TrackWorkoutScreen(
 
             val listState = rememberScalingLazyListState()
 
-            Scaffold(timeText = {
-                TimeText(
-                    timeSource = TimeTextDefaults.timeSource(TimeTextDefaults.timeFormat()),
-                    modifier = Modifier.scrollAway(listState)
-                )
-            }, vignette = {
+            Scaffold(vignette = {
                 Vignette(vignettePosition = VignettePosition.TopAndBottom)
             }, positionIndicator = {
                 PositionIndicator(
@@ -164,6 +159,27 @@ fun TrackWorkoutScreen(
                         .background(MaterialTheme.colors.background),
                     autoCentering = AutoCenteringParams(itemIndex = 0),
                 ) {
+                    item {
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 16.dp)
+                        ) {
+                            Row {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Location On",
+                                    tint = Color.Green
+                                )
+                                Text(
+                                    text = TimeTextDefaults.timeSource(TimeTextDefaults.timeFormat()).currentTime,
+                                )
+                            }
+                        }
+
+                    }
                     // ExerciseType
                     item {
                         Column(
@@ -233,13 +249,11 @@ fun TrackWorkoutScreen(
                             Row(
                                 horizontalArrangement = Arrangement.Center,
                             ) {
-                                val distanceStr =
-                                    if (distance != null) formatDistance(
-                                        distance,
-                                        MeasurementUnit.IMPERIAL
-                                    ).toString() else formatDistance(
-                                        tempDistance.value, MeasurementUnit.IMPERIAL
-                                    ).toString()
+                                val distanceStr = if (distance != null) formatDistance(
+                                    distance, MeasurementUnit.IMPERIAL
+                                ).toString() else formatDistance(
+                                    tempDistance.value, MeasurementUnit.IMPERIAL
+                                ).toString()
 
                                 if (distance != null) tempDistance.value = distance
 
