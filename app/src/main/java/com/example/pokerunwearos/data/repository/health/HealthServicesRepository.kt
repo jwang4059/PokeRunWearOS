@@ -21,6 +21,14 @@ import javax.inject.Inject
 class HealthServicesRepository @Inject constructor(
     @ApplicationContext private val applicationContext: Context
 ) {
+    // Passive Client Manager
+    @Inject
+    lateinit var passiveClientManager: PassiveClientManager
+
+    suspend fun hasStepsDailyCapability() = passiveClientManager.hasStepsDailyCapability()
+
+    suspend fun registerForStepsDailyData() = passiveClientManager.registerForStepsDailyData()
+
     // Measure Client Manager
     @Inject
     lateinit var measureClientManager: MeasureClientManager

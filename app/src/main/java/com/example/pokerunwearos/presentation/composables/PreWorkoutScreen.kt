@@ -5,9 +5,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
@@ -19,37 +19,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.health.services.client.data.LocationAvailability
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.material.AutoCenteringParams
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
-import androidx.wear.compose.material.rememberScalingLazyListState
-import androidx.wear.compose.material.scrollAway
 import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.repository.health.ServiceState
 import com.example.pokerunwearos.presentation.ui.utils.RUNNING
 import com.example.pokerunwearos.presentation.ui.utils.TREADMILL
+import com.example.pokerunwearos.presentation.ui.widgets.Section
 import com.example.pokerunwearos.presentation.ui.widgets.SummaryFormat
 import kotlinx.coroutines.launch
 
 @Composable
 fun PreWorkoutScreen(
-    onStart: () -> Unit = {},
     prepareExercise: () -> Unit,
     serviceState: ServiceState,
     permissions: Array<String>,
     exerciseType: String?,
     exerciseGoal: Double?,
-) {
+    navigateToCountdown: () -> Unit = {},
+    ) {
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
@@ -73,59 +69,44 @@ fun PreWorkoutScreen(
                 }
             }
 
-            val listState = rememberScalingLazyListState()
-
             Scaffold(timeText = {
                 TimeText(
                     timeSource = TimeTextDefaults.timeSource(TimeTextDefaults.timeFormat()),
-                    modifier = Modifier.scrollAway(listState)
                 )
             }, vignette = {
                 Vignette(vignettePosition = VignettePosition.TopAndBottom)
-            }, positionIndicator = {
-                PositionIndicator(
-                    scalingLazyListState = listState
-                )
             }) {
-                ScalingLazyColumn(
+                Section(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colors.background),
-                    autoCentering = AutoCenteringParams(itemIndex = 0),
+                        .background(MaterialTheme.colors.background)
                 ) {
-                    item {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    Column (
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row {
                             Text(
                                 text = "Workout Summary",
                             )
                         }
-                    }
-                    item {
-                        SummaryFormat(
-                            value = exerciseType ?: RUNNING,
-                            metric = "Exercise Type",
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    item {
-                        if (exerciseGoal != null && exerciseGoal != 0.0) {
+                        Row {
                             SummaryFormat(
-                                value = "%s meters".format(exerciseGoal),
-                                metric = "Exercise Goal",
-                                modifier = Modifier.fillMaxWidth()
+                                value = exerciseType ?: RUNNING,
+                                metric = "Exercise Type",
                             )
                         }
-                    }
-                    item {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
+                        if (exerciseGoal != null && exerciseGoal != 0.0) {
+                            Row {
+                                SummaryFormat(
+                                    value = "%s meters".format(exerciseGoal),
+                                    metric = "Exercise Goal",
+                                )
+                            }
+                        }
+                        Row {
                             Button(
-                                onClick = { onStart() },
+                                onClick = { navigateToCountdown() },
                                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primaryVariant),
                                 modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
                             ) {
@@ -135,13 +116,8 @@ fun PreWorkoutScreen(
                                 )
                             }
                         }
-                    }
-                    item {
                         if (exerciseType != TREADMILL) {
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
+                            Row {
                                 Text(
                                     text = updatePrepareLocationStatus(locationAvailability = location),
                                 )

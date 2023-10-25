@@ -12,7 +12,9 @@ import android.os.IBinder
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.health.services.client.PassiveListenerService
 import androidx.health.services.client.data.DataPointContainer
+import androidx.health.services.client.data.DataType
 import androidx.health.services.client.data.ExerciseConfig
 import androidx.health.services.client.data.ExerciseEndReason
 import androidx.health.services.client.data.ExerciseGoal
@@ -28,6 +30,7 @@ import androidx.wear.ongoing.OngoingActivity
 import androidx.wear.ongoing.Status
 import com.example.pokerunwearos.MainActivity
 import com.example.pokerunwearos.R
+import com.example.pokerunwearos.data.repository.PassiveDataRepository
 import com.example.pokerunwearos.data.repository.health.ExerciseClientManager
 import com.example.pokerunwearos.data.repository.health.ExerciseMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,6 +40,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.Duration
 import java.time.Instant
 import javax.inject.Inject
@@ -392,6 +396,16 @@ class ForegroundService : LifecycleService() {
     }
 }
 
+@AndroidEntryPoint
+class PassiveDataService : PassiveListenerService() {
+    @Inject
+    lateinit var passiveDataRepository: PassiveDataRepository
+    override fun onNewDataPointsReceived(dataPoints: DataPointContainer) {
+        runBlocking {
+            passiveDataRepository.setStepsDaily(dataPoints.getData(DataType.STEPS_DAILY).last().value)
+        }
+    }
+}
 
 /** Keeps track of the last time we received an update for active exercise duration. */
 data class ActiveDurationUpdate(

@@ -119,7 +119,11 @@ fun PostWorkoutScreen(
             item {
                 if (workout != null) {
                     SummaryFormat(
-                        value = formatElapsedTime(ElapsedTime.ElapsedTimeLong(workout.timeMillis), true).toString(),
+                        value = formatElapsedTime(
+                            time = ElapsedTime.ElapsedTimeLong(workout.timeMillis),
+                            includeSeconds = true,
+                            includeHundredth = true
+                        ).toString(),
                         metric = stringResource(id = R.string.duration),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -137,7 +141,9 @@ fun PostWorkoutScreen(
             item {
                 if (workout != null) {
                     SummaryFormat(
-                        value = formatDistance(workout.distance, MeasurementUnit.IMPERIAL).toString(),
+                        value = formatDistance(
+                            workout.distance, MeasurementUnit.IMPERIAL
+                        ).toString(),
                         metric = stringResource(id = R.string.distance),
                         modifier = Modifier.fillMaxWidth()
                     )

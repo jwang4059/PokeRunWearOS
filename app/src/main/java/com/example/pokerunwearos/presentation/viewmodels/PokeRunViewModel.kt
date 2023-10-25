@@ -12,7 +12,8 @@ import androidx.health.services.client.data.ExerciseTypeCapabilities
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokerunwearos.data.models.Workout
-import com.example.pokerunwearos.data.repository.PreferencesRepository
+import com.example.pokerunwearos.data.repository.PassiveDataRepository
+import com.example.pokerunwearos.data.repository.SettingsRepository
 import com.example.pokerunwearos.data.repository.WorkoutRepository
 import com.example.pokerunwearos.data.repository.health.HealthServicesRepository
 import com.example.pokerunwearos.data.repository.health.ServiceState
@@ -29,8 +30,9 @@ import javax.inject.Inject
 @HiltViewModel
 class PokeRunViewModel @Inject constructor(
     private val healthServicesRepository: HealthServicesRepository,
-    private val preferencesRepository: PreferencesRepository,
     private val workoutRepository: WorkoutRepository,
+    private val settingsRepository: SettingsRepository,
+    passiveDataRepository: PassiveDataRepository,
 ) : ViewModel() {
     val permissions = arrayOf(
         Manifest.permission.BODY_SENSORS,
@@ -49,11 +51,15 @@ class PokeRunViewModel @Inject constructor(
     }
 
     private val uiStateFlow = combine(
-        preferencesRepository.exerciseType, preferencesRepository.exerciseGoal, exerciseFlow
-    ) { exerciseType: String?, exerciseGoal: Double?, exerciseInfo: ExerciseInfo ->
+        settingsRepository.exerciseType,
+        settingsRepository.exerciseGoal,
+        passiveDataRepository.stepsDaily,
+        exerciseFlow
+    ) { exerciseType: String?, exerciseGoal: Double?, stepsDaily: Long?, exerciseInfo: ExerciseInfo ->
         return@combine PokeRunUiState(
             currentExerciseType = exerciseType,
             currentExerciseGoal = exerciseGoal,
+            stepsDaily = stepsDaily,
             exerciseCapabilities = exerciseInfo.exerciseCapabilities,
             isTrackingAnotherExercise = exerciseInfo.isTrackingAnotherExercise
         )
@@ -68,8 +74,15 @@ class PokeRunViewModel @Inject constructor(
     val exerciseServiceState = _exerciseServiceState
 
     init {
+        // Start service for workout
         viewModelScope.launch {
             healthServicesRepository.createService()
+        }
+
+        // Register for daily steps
+        viewModelScope.launch {
+            val supported = healthServicesRepository.hasStepsDailyCapability()
+            if (supported) healthServicesRepository.registerForStepsDailyData()
         }
     }
 
@@ -78,21 +91,21 @@ class PokeRunViewModel @Inject constructor(
     }
 
     fun hasExerciseCapabilities(
-        capabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>?,
         exerciseType: ExerciseType? = null
     ): Boolean {
+        val capabilities = uiState.value.exerciseCapabilities
         return if (exerciseType != null) capabilities?.get(exerciseType) != null else capabilities != null
     }
 
     fun setExercise(exerciseType: String) {
         viewModelScope.launch {
-            preferencesRepository.setExerciseType(exerciseType)
+            settingsRepository.setExerciseType(exerciseType)
         }
     }
 
     fun setExerciseGoal(exerciseGoal: Double) {
         viewModelScope.launch {
-            preferencesRepository.setExerciseGoal(exerciseGoal)
+            settingsRepository.setExerciseGoal(exerciseGoal)
         }
     }
 
@@ -149,6 +162,7 @@ data class ExerciseInfo(
 data class PokeRunUiState(
     val currentExerciseType: String? = null,
     val currentExerciseGoal: Double? = null,
+    val stepsDaily: Long? = null,
     val exerciseCapabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>? = mutableMapOf(),
     val isTrackingAnotherExercise: Boolean = false,
 )

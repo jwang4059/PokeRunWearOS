@@ -18,7 +18,8 @@ import javax.inject.Inject
 
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-class PreferencesRepository @Inject constructor(
+
+class SettingsRepository @Inject constructor(
     @ApplicationContext private val applicationContext: Context
 ) {
     private val dataStore = applicationContext.dataStore
@@ -45,7 +46,6 @@ class PreferencesRepository @Inject constructor(
         preferences[EXERCISE_GOAL]
     }
 
-
     suspend fun setExerciseType(exerciseType: String) {
         dataStore.edit { preferences ->
             preferences[EXERCISE_TYPE] = exerciseType
@@ -62,6 +62,7 @@ class PreferencesRepository @Inject constructor(
         val EXERCISE_TYPE = stringPreferencesKey("exercise_type")
         val EXERCISE_GOAL = doublePreferencesKey("exercise_goal")
 
-        const val TAG = "Preferences Repo"
+
+        const val TAG = "Settings Repo"
     }
 }

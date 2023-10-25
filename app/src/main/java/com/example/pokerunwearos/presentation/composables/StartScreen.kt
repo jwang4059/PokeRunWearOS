@@ -3,18 +3,24 @@ package com.example.pokerunwearos.presentation.composables
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -22,33 +28,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.health.services.client.data.DataTypeAvailability
-import androidx.wear.compose.material.AutoCenteringParams
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.ScalingLazyColumn
-import androidx.wear.compose.material.ScalingLazyColumnDefaults
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
-import androidx.wear.compose.material.rememberScalingLazyListState
 import com.example.pokerunwearos.R
 import com.example.pokerunwearos.presentation.ui.widgets.HeartRateLabel
+import com.example.pokerunwearos.presentation.ui.widgets.Section
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun StartScreen(
+    modifier: Modifier = Modifier,
     permissions: Array<String>,
     hrBPM: Double,
     availability: DataTypeAvailability,
+    stepsDaily: Long?,
     navigateToExerciseSelection: () -> Unit = {},
 ) {
-    val listState = rememberScalingLazyListState()
+    val state = rememberLazyListState()
+    val snappingLayout = remember(state) { SnapLayoutInfoProvider(state) }
+    val flingBehavior = rememberSnapFlingBehavior(snappingLayout)
 
     Scaffold(timeText = {
         TimeText(
@@ -57,25 +65,29 @@ fun StartScreen(
     }, vignette = {
         Vignette(vignettePosition = VignettePosition.TopAndBottom)
     }, positionIndicator = {
-        PositionIndicator(
-            scalingLazyListState = listState
-        )
-    }) {
-        ScalingLazyColumn(
+        PositionIndicator(lazyListState = state)
+    }, modifier = modifier) {
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background),
-            verticalArrangement = Arrangement.spacedBy(64.dp),
-            autoCentering = AutoCenteringParams(itemIndex = 0),
-            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(
-                state = listState, snapOffset = 0.dp
-            )
+            state = state,
+            flingBehavior = flingBehavior
         ) {
             item {
-                CharacterProfileCard(permissions, hrBPM, availability)
+                CharacterProfileSection(
+                    permissions = permissions,
+                    hrBPM = hrBPM,
+                    availability = availability,
+                    stepsDaily = stepsDaily,
+                    modifier = Modifier.fillParentMaxSize()
+                )
             }
             item {
-                StartWorkoutCard(navigateToExerciseSelection)
+                StartWorkoutSection(
+                    navigateToExerciseSelection = navigateToExerciseSelection,
+                    modifier = Modifier.fillParentMaxSize()
+                )
             }
 
         }
@@ -83,8 +95,12 @@ fun StartScreen(
 }
 
 @Composable
-fun CharacterProfileCard(
-    permissions: Array<String>, hrBPM: Double, availability: DataTypeAvailability
+fun CharacterProfileSection(
+    modifier: Modifier = Modifier,
+    permissions: Array<String>,
+    hrBPM: Double,
+    availability: DataTypeAvailability,
+    stepsDaily: Long?
 ) {
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -103,17 +119,20 @@ fun CharacterProfileCard(
     }
 
 
-    Row(
-        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
-    ) {
+    Section(modifier = modifier) {
         Column(
             modifier = Modifier.weight(2f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HeartRateLabel(
-                hrBPM = hrBPM, availability = availability
-            )
+            Row {
+                HeartRateLabel(
+                    hrBPM = hrBPM, availability = availability
+                )
+            }
+            Row {
+                Text(text = stepsDaily?.toString() ?: "N/A")
+            }
         }
         Column(
             modifier = Modifier.weight(1f),
@@ -130,12 +149,11 @@ fun CharacterProfileCard(
 }
 
 @Composable
-fun StartWorkoutCard(
+fun StartWorkoutSection(
+    modifier: Modifier = Modifier,
     navigateToExerciseSelection: () -> Unit = {},
 ) {
-    Row(
-        horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically
-    ) {
+    Section(modifier = modifier) {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -167,6 +185,8 @@ fun StartWorkoutCard(
         }
     }
 }
+
+
 
 
 //@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)

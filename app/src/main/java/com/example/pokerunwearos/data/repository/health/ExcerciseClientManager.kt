@@ -88,8 +88,9 @@ class ExerciseClientManager @Inject constructor(
         }
 
         // Types for which we want to receive metrics. Only ask for ones that are supported.
-        val capabilities = getExerciseCapabilities() ?: return
-        val dataTypes = if (capabilities[exerciseType] != null) setOf(
+        val capabilitiesMap = getExerciseCapabilities()
+        val capabilities = capabilitiesMap?.get(exerciseType) ?: return
+        val dataTypes = setOf(
             DataType.HEART_RATE_BPM,
             DataType.HEART_RATE_BPM_STATS,
             DataType.CALORIES_TOTAL,
@@ -99,25 +100,25 @@ class ExerciseClientManager @Inject constructor(
             DataType.PACE_STATS,
             DataType.SPEED,
             DataType.SPEED_STATS
-        ).intersect(capabilities[exerciseType]!!.supportedDataTypes) else setOf()
+        ).intersect(capabilities.supportedDataTypes)
 
         // Add goal to list of goals
         val exerciseGoals = mutableListOf<ExerciseGoal<Double>>()
 
-        if (exerciseGoal != null && supportsGoalType(
-                capabilities[exerciseType],
-                exerciseGoal.exerciseGoalType,
-                exerciseGoal.dataTypeCondition.dataType
+        if ((exerciseGoal != null) && supportsGoalType(
+                capabilities, exerciseGoal.exerciseGoalType, exerciseGoal.dataTypeCondition.dataType
             )
         ) {
             exerciseGoals.add(exerciseGoal)
         }
 
+        val isGpsEnabled = exerciseType != ExerciseType.RUNNING_TREADMILL
+
         val config = ExerciseConfig(
             exerciseType = exerciseType,
             dataTypes = dataTypes,
             isAutoPauseAndResumeEnabled = false,
-            isGpsEnabled = true,
+            isGpsEnabled = isGpsEnabled,
             exerciseGoals = exerciseGoals
         )
         exerciseClient.startExerciseAsync(config).await()

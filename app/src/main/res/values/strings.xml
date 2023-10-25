@@ -12,7 +12,6 @@
 
     <!-- Screens -->
     <string name="preparing_exercise">Preparing exercise</string>
-    <string name="start">Start</string>
     <string name="start_workout">Start Workout</string>
     <string name="starting_up">Starting up</string>
     <string name="not_avail">Exercise not available on this device</string>
@@ -35,18 +34,22 @@
     <string name="speed"> Speed </string>
     <string name="pace"> Pace </string>
     <string name="steps"> Steps </string>
+    <string name="heart_rate">Heart Rate</string>
     <string name="calories"> Calories </string>
     <string name="avgSpd"> Avg. speed </string>
     <string name="avgPace"> Avg. pace </string>
-    <string name="avgCad"> Avg. cadence </string>
     <string name="avgHR"> Avg. heart rate </string>
-    <string name="restart">Restart</string>
+    <string name="avgCad"> Avg. cadence </string>
 
     <!-- Descriptions -->
     <string name="laps">Laps</string>
-    <string name="startOrEnd">Start or End</string>
-    <string name="pauseOrResume">Pause or Resume</string>
-    <string name="heart_rate">Heart Rate</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="finish">Finish</string>
+    <string name="restart">Restart</string>
+    <string name="newWorkout">New</string>
+    <string name="settings">Settings</string>
 
     <!-- Exercise in Progress Dialog -->
     <string name="confirm">Confirm</string>

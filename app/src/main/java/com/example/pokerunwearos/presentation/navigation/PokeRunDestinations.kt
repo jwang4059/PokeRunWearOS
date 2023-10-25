@@ -9,6 +9,8 @@ sealed class PokeRunDestinations(
     object MissionSelectionScreen : PokeRunDestinations("selectMission")
 
     object PreWorkoutScreen : PokeRunDestinations("preWorkout")
+    object CountdownScreen : PokeRunDestinations("countdown")
+
     object TrackWorkoutScreen : PokeRunDestinations("trackWorkout")
 
     object PostWorkoutScreen : PokeRunDestinations("postWorkout")
