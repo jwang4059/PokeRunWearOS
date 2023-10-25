@@ -20,7 +20,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -40,8 +43,10 @@ import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import com.example.pokerunwearos.R
+import com.example.pokerunwearos.data.repository.health.MeasureMessage
 import com.example.pokerunwearos.presentation.ui.widgets.HeartRateLabel
 import com.example.pokerunwearos.presentation.ui.widgets.Section
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -49,14 +54,38 @@ import kotlinx.coroutines.launch
 fun StartScreen(
     modifier: Modifier = Modifier,
     permissions: Array<String>,
-    hrBPM: Double,
-    availability: DataTypeAvailability,
     stepsDaily: Long?,
+    hasHeartRateCapability: suspend () -> Boolean,
+    heartRateMeasureFlow: () -> Flow<MeasureMessage>,
     navigateToExerciseSelection: () -> Unit = {},
 ) {
+    var hasHeartRate by remember { mutableStateOf(false) }
+    var hrBPM by remember { mutableStateOf(0.0) }
+    var availability by remember { mutableStateOf(DataTypeAvailability.UNKNOWN) }
+
     val state = rememberLazyListState()
     val snappingLayout = remember(state) { SnapLayoutInfoProvider(state) }
     val flingBehavior = rememberSnapFlingBehavior(snappingLayout)
+
+    LaunchedEffect(Unit) {
+        launch {
+            hasHeartRate = hasHeartRateCapability()
+        }
+
+        launch {
+            heartRateMeasureFlow().collect { measureMessage ->
+                when (measureMessage) {
+                    is MeasureMessage.MeasureAvailability -> {
+                        availability = measureMessage.availability
+                    }
+
+                    is MeasureMessage.MeasureData -> {
+                        hrBPM = measureMessage.data.last().value
+                    }
+                }
+            }
+        }
+    }
 
     Scaffold(timeText = {
         TimeText(
@@ -185,8 +214,6 @@ fun StartWorkoutSection(
         }
     }
 }
-
-
 
 
 //@Preview(device = Devices.WEAR_OS_SMALL_ROUND, showSystemUi = true)

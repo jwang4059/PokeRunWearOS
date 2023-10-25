@@ -20,7 +20,6 @@ import com.example.pokerunwearos.presentation.composables.TrackWorkoutScreen
 import com.example.pokerunwearos.presentation.ui.utils.toExerciseType
 import com.example.pokerunwearos.presentation.viewmodels.PokeRunViewModel
 import com.example.pokerunwearos.presentation.viewmodels.PostWorkoutViewModel
-import com.example.pokerunwearos.presentation.viewmodels.StartScreenViewModel
 
 @Composable
 fun PokeRunNavHost(
@@ -35,13 +34,10 @@ fun PokeRunNavHost(
         composable(PokeRunDestinations.StartScreen.route) {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            val startScreenViewModel = hiltViewModel<StartScreenViewModel>()
-            val startUiState by startScreenViewModel.uiState.collectAsStateWithLifecycle()
-
-            StartScreen(permissions = startScreenViewModel.permissions,
-                hrBPM = startUiState.heartRateBpm,
-                availability = startUiState.heartRateAvailable,
+            StartScreen(permissions = viewModel.permissions,
                 stepsDaily = uiState.stepsDaily,
+                hasHeartRateCapability = viewModel::hasHeartRateCapability,
+                heartRateMeasureFlow = viewModel::heartRateMeasureFlow,
                 navigateToExerciseSelection = { navController.navigate(PokeRunDestinations.ExerciseSelectionScreen.route) })
         }
 

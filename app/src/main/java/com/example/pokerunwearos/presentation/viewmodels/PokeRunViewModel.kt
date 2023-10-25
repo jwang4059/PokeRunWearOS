@@ -97,6 +97,10 @@ class PokeRunViewModel @Inject constructor(
         return if (exerciseType != null) capabilities?.get(exerciseType) != null else capabilities != null
     }
 
+    suspend fun hasHeartRateCapability() = healthServicesRepository.hasHeartRateCapability()
+
+    fun heartRateMeasureFlow() = healthServicesRepository.heartRateMeasureFlow()
+
     fun setExercise(exerciseType: String) {
         viewModelScope.launch {
             settingsRepository.setExerciseType(exerciseType)

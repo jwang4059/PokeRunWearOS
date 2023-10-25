@@ -67,6 +67,7 @@ import com.example.pokerunwearos.presentation.ui.utils.formatDistance
 import com.example.pokerunwearos.presentation.ui.utils.formatElapsedTime
 import com.example.pokerunwearos.presentation.ui.utils.formatPace
 import com.example.pokerunwearos.presentation.ui.utils.formatSpeed
+import com.example.pokerunwearos.presentation.ui.utils.toFormattedString
 import com.example.pokerunwearos.presentation.ui.widgets.LocationIcon
 import com.example.pokerunwearos.presentation.ui.widgets.Section
 import com.example.pokerunwearos.presentation.ui.widgets.VerticalDivider
@@ -521,7 +522,10 @@ fun WorkoutSection(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column {
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
@@ -535,6 +539,15 @@ fun WorkoutSection(
                         )
                         if (exerciseConfig != null && exerciseConfig.isGpsEnabled) {
                             Spacer(modifier = Modifier.size(16.dp))
+                        }
+                    }
+                    Row {
+                        if (exerciseConfig != null) {
+                            Text(
+                                text = exerciseConfig.exerciseType.toFormattedString(),
+                                color = MaterialTheme.colors.secondary,
+                                fontSize = 8.sp
+                            )
                         }
                     }
                 }
