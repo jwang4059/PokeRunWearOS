@@ -33,11 +33,13 @@ fun PokeRunNavHost(
     ) {
         composable(PokeRunDestinations.StartScreen.route) {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val hrUiState by viewModel.hrUiState.collectAsStateWithLifecycle()
 
             StartScreen(permissions = viewModel.permissions,
                 stepsDaily = uiState.stepsDaily,
-                hasHeartRateCapability = viewModel::hasHeartRateCapability,
-                heartRateMeasureFlow = viewModel::heartRateMeasureFlow,
+                hrBPM = hrUiState.hrBPM,
+                hrAvailability = hrUiState.hrAvailability,
+                setHrEnabled = viewModel::setHrEnabled,
                 navigateToExerciseSelection = { navController.navigate(PokeRunDestinations.ExerciseSelectionScreen.route) })
         }
 
@@ -45,7 +47,7 @@ fun PokeRunNavHost(
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
             ExerciseSelectionScreen(
-                hasCapabilities = viewModel::hasExerciseCapabilities,
+                hasCapabilities = { viewModel.hasExerciseCapabilities(uiState.exerciseCapabilities) },
                 isTrackingAnotherExercise = uiState.isTrackingAnotherExercise,
                 setExercise = viewModel::setExercise,
                 navigateToUnavailable = {

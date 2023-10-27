@@ -44,11 +44,11 @@ class MeasureClientManager @Inject constructor(
             }
         }
 
-        Log.d(TAG, "Registering for data")
+        Log.d(TAG, "Registering for heart rate data")
         measureClient.registerMeasureCallback(DataType.HEART_RATE_BPM, callback)
 
         awaitClose {
-            Log.d(TAG, "Unregistering for data")
+            Log.d(TAG, "Unregistering for heart rate data")
             runBlocking {
                 measureClient.unregisterMeasureCallbackAsync(DataType.HEART_RATE_BPM, callback)
                     .await()
@@ -57,7 +57,7 @@ class MeasureClientManager @Inject constructor(
     }
 
     private companion object {
-        const val TAG = "Measure Client"
+        const val TAG = "Health Measure Client"
     }
 }
 

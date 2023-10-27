@@ -8,11 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -20,11 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -43,10 +35,9 @@ import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import com.example.pokerunwearos.R
-import com.example.pokerunwearos.data.repository.health.MeasureMessage
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredColumn
 import com.example.pokerunwearos.presentation.ui.widgets.HeartRateLabel
 import com.example.pokerunwearos.presentation.ui.widgets.Section
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -55,35 +46,29 @@ fun StartScreen(
     modifier: Modifier = Modifier,
     permissions: Array<String>,
     stepsDaily: Long?,
-    hasHeartRateCapability: suspend () -> Boolean,
-    heartRateMeasureFlow: () -> Flow<MeasureMessage>,
+    hrBPM: Double,
+    hrAvailability: DataTypeAvailability,
+    setHrEnabled: (Boolean) -> Unit = {},
     navigateToExerciseSelection: () -> Unit = {},
 ) {
-    var hasHeartRate by remember { mutableStateOf(false) }
-    var hrBPM by remember { mutableStateOf(0.0) }
-    var availability by remember { mutableStateOf(DataTypeAvailability.UNKNOWN) }
-
     val state = rememberLazyListState()
     val snappingLayout = remember(state) { SnapLayoutInfoProvider(state) }
     val flingBehavior = rememberSnapFlingBehavior(snappingLayout)
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        if (result.all { it.value }) {
+            Log.d("Permissions", "All required permissions granted")
+        } else {
+            Log.d("Permissions", "Missing permissions")
+        }
+    }
+
     LaunchedEffect(Unit) {
         launch {
-            hasHeartRate = hasHeartRateCapability()
-        }
-
-        launch {
-            heartRateMeasureFlow().collect { measureMessage ->
-                when (measureMessage) {
-                    is MeasureMessage.MeasureAvailability -> {
-                        availability = measureMessage.availability
-                    }
-
-                    is MeasureMessage.MeasureData -> {
-                        hrBPM = measureMessage.data.last().value
-                    }
-                }
-            }
+            permissionLauncher.launch(permissions)
+            setHrEnabled(true)
         }
     }
 
@@ -105,15 +90,15 @@ fun StartScreen(
         ) {
             item {
                 CharacterProfileSection(
-                    permissions = permissions,
                     hrBPM = hrBPM,
-                    availability = availability,
+                    availability = hrAvailability,
                     stepsDaily = stepsDaily,
                     modifier = Modifier.fillParentMaxSize()
                 )
             }
             item {
                 StartWorkoutSection(
+                    setHrEnabled = setHrEnabled,
                     navigateToExerciseSelection = navigateToExerciseSelection,
                     modifier = Modifier.fillParentMaxSize()
                 )
@@ -126,47 +111,21 @@ fun StartScreen(
 @Composable
 fun CharacterProfileSection(
     modifier: Modifier = Modifier,
-    permissions: Array<String>,
     hrBPM: Double,
     availability: DataTypeAvailability,
     stepsDaily: Long?
 ) {
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { result ->
-        if (result.all { it.value }) {
-            Log.d("Permissions", "All required permissions granted")
-        } else {
-            Log.d("Permissions", "Missing permissions")
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        launch {
-            permissionLauncher.launch(permissions)
-        }
-    }
-
-
     Section(modifier = modifier) {
-        Column(
+        CenteredColumn(
             modifier = Modifier.weight(2f),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row {
-                HeartRateLabel(
-                    hrBPM = hrBPM, availability = availability
-                )
-            }
-            Row {
-                Text(text = stepsDaily?.toString() ?: "N/A")
-            }
+            HeartRateLabel(
+                hrBPM = hrBPM, availability = availability
+            )
+            Text(text = stepsDaily?.toString() ?: "N/A")
         }
-        Column(
+        CenteredColumn(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(R.drawable.male),
@@ -180,37 +139,28 @@ fun CharacterProfileSection(
 @Composable
 fun StartWorkoutSection(
     modifier: Modifier = Modifier,
+    setHrEnabled: (Boolean) -> Unit,
     navigateToExerciseSelection: () -> Unit = {},
 ) {
     Section(modifier = modifier) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+        CenteredColumn {
+            Text(
+                textAlign = TextAlign.Center,
+                text = "Start Workout",
+            )
+
+            Button(
+                onClick = {
+                    setHrEnabled(false)
+                    navigateToExerciseSelection()
+                }, modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
             ) {
-                Text(
-                    textAlign = TextAlign.Center,
-                    text = "Start Workout",
-                    modifier = Modifier.fillMaxWidth()
+                Icon(
+                    imageVector = Icons.Default.PlayArrow,
+                    contentDescription = stringResource(id = R.string.start)
                 )
             }
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = { navigateToExerciseSelection() },
-                    modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = stringResource(id = R.string.start)
-                    )
-                }
-            }
+
         }
     }
 }

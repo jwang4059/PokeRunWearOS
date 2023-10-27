@@ -1,13 +1,21 @@
 package com.example.pokerunwearos.presentation.composables
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,27 +23,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.AutoCenteringParams
+import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ListHeader
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
-import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.wear.compose.material.scrollAway
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -47,15 +55,25 @@ import com.example.pokerunwearos.presentation.ui.utils.MeasurementUnit
 import com.example.pokerunwearos.presentation.ui.utils.formatCalories
 import com.example.pokerunwearos.presentation.ui.utils.formatDistance
 import com.example.pokerunwearos.presentation.ui.utils.formatElapsedTime
-import com.example.pokerunwearos.presentation.ui.widgets.SummaryFormat
+import com.example.pokerunwearos.presentation.ui.utils.formatPace
+import com.example.pokerunwearos.presentation.ui.utils.formatSpeed
+import com.example.pokerunwearos.presentation.ui.utils.toFormattedString
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredColumn
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
+import com.example.pokerunwearos.presentation.ui.widgets.Section
+import com.example.pokerunwearos.presentation.ui.widgets.VerticalDivider
 import com.example.pokerunwearos.presentation.viewmodels.PokemonUiState
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PostWorkoutScreen(
-    workout: Workout?, fetchPokemon: suspend () -> Pokemon, onRestartClick: () -> Unit = {}
+    modifier: Modifier = Modifier,
+    workout: Workout?,
+    fetchPokemon: suspend () -> Pokemon,
+    onRestartClick: () -> Unit = {}
 ) {
     var pokemonUiState: PokemonUiState by remember { mutableStateOf(PokemonUiState.Loading) }
 
@@ -70,101 +88,170 @@ fun PostWorkoutScreen(
         }
     }
 
-    val listState = rememberScalingLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val state = rememberLazyListState()
+    val snappingLayout = remember(state) { SnapLayoutInfoProvider(state) }
+    val flingBehavior = rememberSnapFlingBehavior(snappingLayout)
 
     Scaffold(timeText = {
         TimeText(
             timeSource = TimeTextDefaults.timeSource(TimeTextDefaults.timeFormat()),
-            modifier = Modifier.scrollAway(listState)
+            modifier = Modifier.scrollAway(state)
         )
     }, vignette = {
         Vignette(vignettePosition = VignettePosition.TopAndBottom)
     }, positionIndicator = {
-        PositionIndicator(
-            scalingLazyListState = listState
-        )
-    }) {
+        PositionIndicator(lazyListState = state)
+    }, modifier = modifier) {
         val focusRequester = remember { FocusRequester() }
 
-        ScalingLazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background)
-                .onRotaryScrollEvent {
-                    coroutineScope.launch {
-                        listState.scrollBy(it.verticalScrollPixels)
-                    }
-                    true
+        LazyColumn(modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colors.background)
+            .onRotaryScrollEvent {
+                coroutineScope.launch {
+                    state.scrollBy(it.verticalScrollPixels)
                 }
-                .focusRequester(focusRequester)
-                .focusable(),
-            autoCentering = AutoCenteringParams(itemIndex = 0),
-            state = listState,
-        ) {
-            item { ListHeader { Text(stringResource(id = R.string.workout_complete)) } }
+                true
+            }
+            .focusRequester(focusRequester)
+            .focusable(),
+            state = state,
+            flingBehavior = flingBehavior) {
             item {
-                when (pokemonUiState) {
-                    is PokemonUiState.Success -> AsyncImage(
-                        model = ImageRequest.Builder(context = LocalContext.current)
-                            .data((pokemonUiState as PokemonUiState.Success).pokemon.sprites.frontDefault)
-                            .crossfade(true).build(),
-                        contentDescription = "pokemon",
-                        contentScale = ContentScale.FillBounds
-                    )
+                Section(modifier = Modifier.fillParentMaxSize()) {
+                    CenteredColumn {
+                        CenteredRow {
+                            if (workout != null) {
+                                workout.exerciseType?.toFormattedString()?.let {
+                                    Text(
+                                        text = it,
+                                        color = MaterialTheme.colors.secondary
+                                    )
+                                }
+                            }
+                        }
+                        CenteredRow {
+                            when (pokemonUiState) {
+                                is PokemonUiState.Success -> AsyncImage(
+                                    model = ImageRequest.Builder(context = LocalContext.current)
+                                        .data((pokemonUiState as PokemonUiState.Success).pokemon.sprites.frontDefault)
+                                        .crossfade(true).build(),
+                                    contentDescription = "pokemon",
+                                    contentScale = ContentScale.FillBounds
+                                )
 
-                    else -> {}
+                                else -> {}
+                            }
+                        }
+                        if (workout != null) {
+                            val durationStr = formatElapsedTime(
+                                time = ElapsedTime.ElapsedTimeLong(workout.timeMillis),
+                                includeSeconds = true,
+                                includeHundredth = true
+                            ).toString()
+
+                            val distanceStr = formatDistance(
+                                meters = workout.distance,
+                                measurementUnit = MeasurementUnit.IMPERIAL,
+                                hasUnit = false
+                            ).toString()
+
+                            val stepsStr = workout.steps.toString()
+
+                            val caloriesStr = formatCalories(
+                                calories = workout.calories, hasUnit = false
+                            ).toString()
+
+                            CenteredRow {
+                                CenteredColumn {
+                                    CenteredRow(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = durationStr,
+                                            fontSize = 32.sp,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                    }
+                                    Row(
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .height(IntrinsicSize.Min)
+                                            .fillMaxWidth()
+                                            .padding(12.dp, 4.dp)
+                                    ) {
+                                        StatText(
+                                            value = distanceStr,
+                                            unit = "mi",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        VerticalDivider(height = 0.4f, color = Color.LightGray)
+                                        StatText(
+                                            value = stepsStr,
+                                            unit = "steps",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        VerticalDivider(height = 0.4f, color = Color.LightGray)
+                                        StatText(
+                                            value = caloriesStr,
+                                            unit = "Cal",
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
             item {
-                if (workout != null) {
-                    SummaryFormat(
-                        value = formatElapsedTime(
-                            time = ElapsedTime.ElapsedTimeLong(workout.timeMillis),
-                            includeSeconds = true,
-                            includeHundredth = true
-                        ).toString(),
-                        metric = stringResource(id = R.string.duration),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                Section(modifier = Modifier.fillParentMaxSize()) {
+                    CenteredColumn {
+                        Row {
+                            Text(text = "Averages")
+                        }
+                        if (workout != null) {
+                            val avgSpeedStr = formatSpeed(
+                                metersPerSec = workout.avgSpeed,
+                                measurementUnit = MeasurementUnit.IMPERIAL,
+                                hasUnit = false
+                            ).toString()
+                            val avgPaceStr = formatPace(
+                                msPerKm = workout.avgPace,
+                                measurementUnit = MeasurementUnit.IMPERIAL,
+                                available = false
+                            ).toString()
+                            val avgHeartRateStr = workout.avgHeartRate.toInt().toString()
+
+                            CenteredRow {
+                                CenteredColumn {
+                                    AvgStatText(
+                                        label = stringResource(id = R.string.speed),
+                                        value = avgSpeedStr,
+                                        unit = " mph"
+                                    )
+                                    AvgStatText(
+                                        label = stringResource(id = R.string.pace),
+                                        value = avgPaceStr,
+                                        unit = " /mi"
+                                    )
+                                    AvgStatText(
+                                        label = stringResource(id = R.string.heart_rate),
+                                        value = avgHeartRateStr,
+                                        unit = " bpm"
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
+
+
             item {
-                if (workout != null) {
-                    SummaryFormat(
-                        value = workout.avgHeartRate.toInt().toString(),
-                        metric = stringResource(id = R.string.avgHR),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-            item {
-                if (workout != null) {
-                    SummaryFormat(
-                        value = formatDistance(
-                            workout.distance, MeasurementUnit.IMPERIAL
-                        ).toString(),
-                        metric = stringResource(id = R.string.distance),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-            item {
-                if (workout != null) {
-                    SummaryFormat(
-                        value = formatCalories(workout.calories).toString(),
-                        metric = stringResource(id = R.string.calories),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-            item {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                ) {
+                Section(modifier = Modifier.fillParentMaxSize()) {
                     Button(
                         onClick = {
                             onRestartClick()
@@ -176,6 +263,33 @@ fun PostWorkoutScreen(
             }
         }
         LaunchedEffect(Unit) { focusRequester.requestFocus() }
+    }
+}
+
+@Composable
+fun StatText(modifier: Modifier = Modifier, value: String, unit: String) {
+    CenteredColumn(modifier = modifier) {
+        Text(text = value, fontWeight = FontWeight.Bold)
+        Text(text = unit, color = Color.Gray)
+    }
+}
+
+@Composable
+fun AvgStatText(modifier: Modifier = Modifier, label: String, value: String, unit: String) {
+    Row(
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Bottom,
+        modifier = modifier.fillMaxWidth(0.9F)
+    ) {
+        Column {
+            Text(text = label)
+        }
+        Column {
+            Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
+                Text(text = value, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text(text = unit)
+            }
+        }
     }
 }
 

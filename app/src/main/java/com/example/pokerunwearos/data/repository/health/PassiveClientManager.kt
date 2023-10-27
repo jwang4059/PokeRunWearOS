@@ -27,7 +27,7 @@ class PassiveClientManager @Inject constructor(
     }
 
     suspend fun registerForStepsDailyData() {
-        Log.i(TAG, "Registering listener")
+        Log.i(TAG, "Registering listener for steps daily")
         passiveMonitoringClient.setPassiveListenerServiceAsync(
             PassiveDataService::class.java,
             passiveListenerConfig
@@ -40,6 +40,6 @@ class PassiveClientManager @Inject constructor(
 //    }
 
     private companion object {
-        const val TAG = "Passive Client"
+        const val TAG = "Health Passive Client"
     }
 }

@@ -191,10 +191,11 @@ class ExerciseClientManager @Inject constructor(
             }
 
             override fun onRegistered() {
+                Log.d(TAG, "Registering for exercise data")
             }
 
             override fun onRegistrationFailed(throwable: Throwable) {
-                TODO("Not yet implemented")
+                Log.d(TAG, "Unregistering for exercise data")
             }
 
             override fun onAvailabilityChanged(
@@ -219,7 +220,7 @@ class ExerciseClientManager @Inject constructor(
             ExerciseType.RUNNING, ExerciseType.RUNNING_TREADMILL, ExerciseType.WALKING
         )
 
-        const val TAG = "Exercise Client"
+        const val TAG = "Health Exercise Client"
     }
 }
 

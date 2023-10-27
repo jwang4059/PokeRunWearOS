@@ -9,7 +9,7 @@ import com.example.pokerunwearos.data.models.Workout
 import com.example.pokerunwearos.data.local.dao.WorkoutDao
 import com.example.pokerunwearos.data.models.Converters
 
-@Database(entities = [Workout::class], version = 1, exportSchema = false)
+@Database(entities = [Workout::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao

@@ -45,34 +45,64 @@ fun formatElapsedTime(
     }
     if (includeHundredth) {
         val millis = elapsedDuration.inWholeMilliseconds % MILLIS_PER_SECOND
-        val hundredth_of_second = millis / 10
-        append("%02d".format(hundredth_of_second))
+        val hundredthOfSecond = millis / 10
+        append("%02d".format(hundredthOfSecond))
     }
 }
 
-fun formatCalories(calories: Double) = buildSpannedString {
+fun formatCalories(
+    calories: Double, hasUnit: Boolean = true
+) = buildSpannedString {
     append(calories.roundToInt().toString())
-    inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
-        append(" cal")
+    if (hasUnit) {
+        inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
+            append(" cal")
+        }
     }
 }
 
-fun formatDistance(meters: Double, measurementUnit: MeasurementUnit) = buildSpannedString {
+fun formatDistance(
+    meters: Double,
+    measurementUnit: MeasurementUnit = MeasurementUnit.METRIC,
+    hasUnit: Boolean = true
+) = buildSpannedString {
     val measurementConversionUnit =
         if (measurementUnit == MeasurementUnit.METRIC) MetricConversionUnits else ImperialConversionUnits
 
     append("%02.2f".format(meters / measurementConversionUnit.distanceConversion))
-    inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
-        append(measurementConversionUnit.distanceUnit)
+    if (hasUnit) {
+        inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
+            append(measurementConversionUnit.distanceUnit)
+        }
     }
 }
 
-fun formatPace(msPerKm: Double, measurementUnit: MeasurementUnit) = buildSpannedString {
+fun formatSpeed(
+    metersPerSec: Double,
+    measurementUnit: MeasurementUnit = MeasurementUnit.METRIC,
+    hasUnit: Boolean = true
+) = buildSpannedString {
+    val measurementConversionUnit =
+        if (measurementUnit == MeasurementUnit.METRIC) MetricConversionUnits else ImperialConversionUnits
+
+    append("%02.1f".format(metersPerSec * measurementConversionUnit.speedConversion))
+    if (hasUnit) {
+        inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
+            append(measurementConversionUnit.speedUnit)
+        }
+    }
+}
+
+fun formatPace(
+    msPerKm: Double,
+    measurementUnit: MeasurementUnit = MeasurementUnit.METRIC,
+    available: Boolean = true
+) = buildSpannedString {
     val measurementConversionUnit =
         if (measurementUnit == MeasurementUnit.METRIC) MetricConversionUnits else ImperialConversionUnits
 
     if (msPerKm == Double.POSITIVE_INFINITY || msPerKm == NO_MOVEMENT_PACE) {
-        append("__'__\"")
+        if (available) append("__'__\"") else append("N/A")
     } else {
         val secPerMile = msPerKm / measurementConversionUnit.paceConversion
         val minutes = secPerMile / SECONDS_PER_MINUTE
@@ -85,16 +115,6 @@ fun formatPace(msPerKm: Double, measurementUnit: MeasurementUnit) = buildSpanned
         inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
             append("\"")
         }
-    }
-}
-
-fun formatSpeed(metersPerSec: Double, measurementUnit: MeasurementUnit) = buildSpannedString {
-    val measurementConversionUnit =
-        if (measurementUnit == MeasurementUnit.METRIC) MetricConversionUnits else ImperialConversionUnits
-
-    append("%02.1f".format(metersPerSec * measurementConversionUnit.speedConversion))
-    inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
-        append(measurementConversionUnit.speedUnit)
     }
 }
 

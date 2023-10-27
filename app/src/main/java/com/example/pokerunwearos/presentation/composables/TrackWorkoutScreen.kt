@@ -142,9 +142,9 @@ fun TrackWorkoutScreen(
                 tempSpeed.value = tempSpeed.value
             }
 
-            // Average Pace
-//            val averageSpeed = exerciseMetrics?.getData(DataType.SPEED_STATS)?.average
-//            val tempAverageSpeed = remember { mutableStateOf(0.0) }
+            // Average Speed
+            val averageSpeed = exerciseMetrics?.getData(DataType.SPEED_STATS)?.average
+            val tempAverageSpeed = remember { mutableStateOf(0.0) }
 
             // Steps
             val steps = exerciseMetrics?.getData(DataType.STEPS_TOTAL)?.total
@@ -362,12 +362,13 @@ fun TrackWorkoutScreen(
                                             onEndClick()
                                             saveWorkout(
                                                 Workout(
-                                                    exerciseType = exerciseConfig?.exerciseType.toString(),
+                                                    exerciseType = exerciseConfig?.exerciseType,
                                                     timeMillis = activeDuration.toMillis(),
                                                     distance = tempDistance.value,
-                                                    pace = tempPace.value,
                                                     steps = tempSteps.value,
                                                     calories = tempCalories.value,
+                                                    avgSpeed = tempAverageSpeed.value,
+                                                    avgPace = tempAveragePace.value,
                                                     avgHeartRate = tempAverageHeartRate.value,
                                                     distanceGoal = exerciseConfig?.exerciseGoals?.filter {
                                                         it.exerciseGoalType == ExerciseGoalType.ONE_TIME_GOAL && it.dataTypeCondition.dataType == DataType.DISTANCE_TOTAL && it.dataTypeCondition.comparisonType == ComparisonType.GREATER_THAN_OR_EQUAL
@@ -387,6 +388,10 @@ fun TrackWorkoutScreen(
                         }
                     }
                 }
+                if (averageSpeed != null) {
+                    tempAverageSpeed.value = averageSpeed
+                }
+
                 if (averageHeartRate != null) {
                     tempAverageHeartRate.value = averageHeartRate
                 }
