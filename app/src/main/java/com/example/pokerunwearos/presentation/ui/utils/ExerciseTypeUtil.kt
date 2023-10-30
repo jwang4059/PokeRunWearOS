@@ -13,3 +13,7 @@ fun ExerciseType.toFormattedString(): String {
     else if (this == ExerciseType.RUNNING_TREADMILL) TREADMILL
     else RUNNING
 }
+
+val exerciseTypes = arrayOf(
+    ExerciseType.RUNNING, ExerciseType.RUNNING_TREADMILL, ExerciseType.WALKING
+)

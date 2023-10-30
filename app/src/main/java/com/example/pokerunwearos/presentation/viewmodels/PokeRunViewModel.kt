@@ -48,10 +48,6 @@ class PokeRunViewModel @Inject constructor(
         Manifest.permission.ACTIVITY_RECOGNITION
     )
 
-    private val exerciseTypes = arrayOf(
-        ExerciseType.RUNNING, ExerciseType.RUNNING_TREADMILL, ExerciseType.WALKING
-    )
-
     private val exerciseFlow = flow {
         emit(
             ExerciseInfo(
@@ -149,11 +145,15 @@ class PokeRunViewModel @Inject constructor(
     }
 
     fun hasExerciseCapabilities(
-        capabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>?,
-        exerciseType: ExerciseType? = null
+        exerciseTypes: Array<ExerciseType>, checkAll: Boolean = false
     ): Boolean {
-        if (capabilities == null) return true
-        return if (exerciseType != null) capabilities[exerciseType] != null else exerciseTypes.all { it in capabilities }
+        val capabilities = uiState.value.exerciseCapabilities ?: return true
+
+        return if (!checkAll) {
+            exerciseTypes.any { capabilities[it] != null }
+        } else {
+            exerciseTypes.all { capabilities[it] != null }
+        }
     }
 
     fun setExercise(exerciseType: String) {

@@ -4,19 +4,18 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.health.services.client.data.LocationAvailability
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Button
@@ -33,8 +32,10 @@ import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.repository.health.ServiceState
 import com.example.pokerunwearos.presentation.ui.utils.RUNNING
 import com.example.pokerunwearos.presentation.ui.utils.TREADMILL
+import com.example.pokerunwearos.presentation.ui.utils.formatNumberWithCommas
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredColumn
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
 import com.example.pokerunwearos.presentation.ui.widgets.Section
-import com.example.pokerunwearos.presentation.ui.widgets.SummaryFormat
 import kotlinx.coroutines.launch
 
 @Composable
@@ -45,7 +46,7 @@ fun PreWorkoutScreen(
     exerciseType: String?,
     exerciseGoal: Double?,
     navigateToCountdown: () -> Unit = {},
-    ) {
+) {
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
@@ -81,46 +82,43 @@ fun PreWorkoutScreen(
                         .fillMaxSize()
                         .background(MaterialTheme.colors.background)
                 ) {
-                    Column (
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Row {
-                            Text(
-                                text = "Workout Summary",
-                            )
+                    CenteredColumn {
+                        CenteredRow {
+                            Text(text = "Workout Preview", fontSize = 12.sp)
                         }
-                        Row {
-                            SummaryFormat(
-                                value = exerciseType ?: RUNNING,
-                                metric = "Exercise Type",
-                            )
-                        }
-                        if (exerciseGoal != null && exerciseGoal != 0.0) {
-                            Row {
-                                SummaryFormat(
-                                    value = "%s meters".format(exerciseGoal),
-                                    metric = "Exercise Goal",
-                                )
-                            }
-                        }
-                        Row {
-                            Button(
-                                onClick = { navigateToCountdown() },
-                                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primaryVariant),
-                                modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = stringResource(id = R.string.start),
-                                )
-                            }
-                        }
-                        if (exerciseType != TREADMILL) {
-                            Row {
+
+                        CenteredRow {
+                            CenteredColumn {
                                 Text(
-                                    text = updatePrepareLocationStatus(locationAvailability = location),
+                                    text = exerciseType ?: RUNNING,
+                                    color = MaterialTheme.colors.secondary,
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
+                                if (exerciseGoal != null && exerciseGoal != 0.0) {
+                                    Text(text = "${formatNumberWithCommas(exerciseGoal.toLong())} meters")
+                                }
+                            }
+                        }
+
+                        CenteredRow {
+                            CenteredColumn {
+                                Button(
+                                    onClick = { navigateToCountdown() },
+                                    colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primaryVariant),
+                                    modifier = Modifier.padding(8.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = stringResource(id = R.string.start),
+                                    )
+                                }
+                                if (exerciseType != TREADMILL) {
+                                    Text(
+                                        text = updatePrepareLocationStatus(locationAvailability = location),
+                                        fontSize = 12.sp
+                                    )
+                                }
                             }
                         }
                     }

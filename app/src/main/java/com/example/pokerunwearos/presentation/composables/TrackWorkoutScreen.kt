@@ -68,6 +68,8 @@ import com.example.pokerunwearos.presentation.ui.utils.formatElapsedTime
 import com.example.pokerunwearos.presentation.ui.utils.formatPace
 import com.example.pokerunwearos.presentation.ui.utils.formatSpeed
 import com.example.pokerunwearos.presentation.ui.utils.toFormattedString
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredColumn
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
 import com.example.pokerunwearos.presentation.ui.widgets.LocationIcon
 import com.example.pokerunwearos.presentation.ui.widgets.Section
 import com.example.pokerunwearos.presentation.ui.widgets.VerticalDivider
@@ -189,25 +191,6 @@ fun TrackWorkoutScreen(
                     state = state,
                     flingBehavior = flingBehavior
                 ) {
-                    // ExerciseType
-//                    item {
-//                        Column(
-//                            verticalArrangement = Arrangement.Center,
-//                            horizontalAlignment = Alignment.CenterHorizontally,
-//                            modifier = Modifier.fillMaxWidth()
-//                        ) {
-//                            Row {
-//                                if (exerciseConfig != null) {
-//                                    Text(
-//                                        text = exerciseConfig.exerciseType.toFormattedString(),
-//                                        color = MaterialTheme.colors.secondary,
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
-
-
                     item {
                         WorkoutSection(
                             exerciseConfig = exerciseConfig,
@@ -311,7 +294,7 @@ fun TrackWorkoutScreen(
 
                     item {
                         Section(modifier = Modifier.fillParentMaxSize()) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CenteredColumn {
                                 Row {
                                     Text(text = elapsedTime.value, fontSize = 14.sp)
                                 }
@@ -408,9 +391,7 @@ fun MenuButton(
     imageVector: ImageVector,
     contextDescription: String,
 ) {
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    CenteredColumn(
         modifier = Modifier.padding(4.dp)
     ) {
         Button(onClick = onClick) {
@@ -436,38 +417,20 @@ fun WorkoutSectionRow(
     Row(modifier = modifier) {
         Column {
             // Name Row
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            CenteredRow(modifier = Modifier.fillMaxWidth()) {
                 // Name 1
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = name1, fontSize = 12.sp
-                    )
+                CenteredColumn(modifier = Modifier.weight(1f)) {
+                    Text(text = name1, fontSize = 12.sp)
                 }
                 // Name 2
                 if (name2 != null) {
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = name2, fontSize = 12.sp
-                        )
+                    CenteredColumn(modifier = Modifier.weight(1f)) {
+                        Text(text = name2, fontSize = 12.sp)
                     }
                 }
             }
             // Values Row
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+            CenteredRow(
                 modifier = Modifier
                     .height(IntrinsicSize.Min)
                     .fillMaxWidth()
@@ -477,14 +440,8 @@ fun WorkoutSectionRow(
             ) {
 
                 // Value1
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = value1, fontSize = 20.sp
-                    )
+                CenteredColumn(modifier = Modifier.weight(1f)) {
+                    Text(text = value1, fontSize = 20.sp)
                 }
 
                 if (value2 != null) {
@@ -493,14 +450,8 @@ fun WorkoutSectionRow(
                     }
 
                     // Value 2
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = value2, fontSize = 20.sp
-                        )
+                    CenteredColumn(modifier = Modifier.weight(1f)) {
+                        Text(text = value2, fontSize = 20.sp)
                     }
                 }
             }
@@ -522,19 +473,9 @@ fun WorkoutSection(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Time
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
+            CenteredRow(modifier = Modifier.fillMaxWidth()) {
+                CenteredColumn {
+                    CenteredRow {
                         if (exerciseConfig != null && exerciseConfig.isGpsEnabled) {
                             LocationIcon(locationAvailability = location)
                         }
@@ -546,7 +487,7 @@ fun WorkoutSection(
                             Spacer(modifier = Modifier.size(16.dp))
                         }
                     }
-                    Row {
+                    CenteredRow {
                         if (exerciseConfig != null) {
                             Text(
                                 text = exerciseConfig.exerciseType.toFormattedString(),
@@ -559,43 +500,32 @@ fun WorkoutSection(
             }
 
             // Workout Stats
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround,
-                content = content,
-                modifier = Modifier
+            CenteredRow(
+                content = content, modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
             )
 
             // Heart Rate
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
+            CenteredRow(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        val heartRateStr = if (heartRate == 0.0) "__" else heartRate.toString()
+                val heartRateStr = if (heartRate == 0.0) "__" else heartRate.toString()
 
-                        if (heartRate != 0.0) {
-                            Icon(
-                                imageVector = Icons.Filled.Favorite,
-                                contentDescription = stringResource(id = R.string.heart_rate),
-                                tint = Color.Gray,
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .padding(4.dp)
-                            )
-                        }
-                        Text(text = heartRateStr, fontSize = 14.sp)
-                        if (heartRate != 0.0) {
-                            Spacer(modifier = Modifier.size(16.dp))
-                        }
-                    }
+                if (heartRate != 0.0) {
+                    Icon(
+                        imageVector = Icons.Filled.Favorite,
+                        contentDescription = stringResource(id = R.string.heart_rate),
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .padding(4.dp)
+                    )
+                }
+
+                Text(text = heartRateStr, fontSize = 14.sp)
+                if (heartRate != 0.0) {
+                    Spacer(modifier = Modifier.size(16.dp))
                 }
             }
         }

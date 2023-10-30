@@ -51,6 +51,7 @@ import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.models.Pokemon
 import com.example.pokerunwearos.data.models.Workout
 import com.example.pokerunwearos.presentation.ui.utils.ElapsedTime
+import com.example.pokerunwearos.presentation.ui.utils.MeasurementMap
 import com.example.pokerunwearos.presentation.ui.utils.MeasurementUnit
 import com.example.pokerunwearos.presentation.ui.utils.formatCalories
 import com.example.pokerunwearos.presentation.ui.utils.formatDistance
@@ -72,6 +73,7 @@ import java.io.IOException
 fun PostWorkoutScreen(
     modifier: Modifier = Modifier,
     workout: Workout?,
+    measurementUnit: MeasurementUnit = MeasurementUnit.IMPERIAL,
     fetchPokemon: suspend () -> Pokemon,
     onRestartClick: () -> Unit = {}
 ) {
@@ -87,6 +89,8 @@ fun PostWorkoutScreen(
             PokemonUiState.Error
         }
     }
+
+    val measurementConversionUnit = MeasurementMap[measurementUnit]!!
 
     val coroutineScope = rememberCoroutineScope()
     val state = rememberLazyListState()
@@ -153,7 +157,7 @@ fun PostWorkoutScreen(
 
                             val distanceStr = formatDistance(
                                 meters = workout.distance,
-                                measurementUnit = MeasurementUnit.IMPERIAL,
+                                measurementUnit = measurementUnit,
                                 hasUnit = false
                             ).toString()
 
@@ -174,9 +178,7 @@ fun PostWorkoutScreen(
                                             fontWeight = FontWeight.ExtraBold
                                         )
                                     }
-                                    Row(
-                                        horizontalArrangement = Arrangement.Center,
-                                        verticalAlignment = Alignment.CenterVertically,
+                                    CenteredRow(
                                         modifier = Modifier
                                             .height(IntrinsicSize.Min)
                                             .fillMaxWidth()
@@ -184,19 +186,19 @@ fun PostWorkoutScreen(
                                     ) {
                                         StatText(
                                             value = distanceStr,
-                                            unit = "mi",
+                                            unit = measurementConversionUnit.distanceUnit,
                                             modifier = Modifier.weight(1f)
                                         )
                                         VerticalDivider(height = 0.4f, color = Color.LightGray)
                                         StatText(
                                             value = stepsStr,
-                                            unit = "steps",
+                                            unit = measurementConversionUnit.stepsUnit,
                                             modifier = Modifier.weight(1f)
                                         )
                                         VerticalDivider(height = 0.4f, color = Color.LightGray)
                                         StatText(
                                             value = caloriesStr,
-                                            unit = "Cal",
+                                            unit = measurementConversionUnit.energyUnit,
                                             modifier = Modifier.weight(1f)
                                         )
                                     }
@@ -215,12 +217,12 @@ fun PostWorkoutScreen(
                         if (workout != null) {
                             val avgSpeedStr = formatSpeed(
                                 metersPerSec = workout.avgSpeed,
-                                measurementUnit = MeasurementUnit.IMPERIAL,
+                                measurementUnit = measurementUnit,
                                 hasUnit = false
                             ).toString()
                             val avgPaceStr = formatPace(
                                 msPerKm = workout.avgPace,
-                                measurementUnit = MeasurementUnit.IMPERIAL,
+                                measurementUnit = measurementUnit,
                                 available = false
                             ).toString()
                             val avgHeartRateStr = workout.avgHeartRate.toInt().toString()
@@ -230,17 +232,17 @@ fun PostWorkoutScreen(
                                     AvgStatText(
                                         label = stringResource(id = R.string.speed),
                                         value = avgSpeedStr,
-                                        unit = " mph"
+                                        unit = " ${measurementConversionUnit.speedUnit}"
                                     )
                                     AvgStatText(
                                         label = stringResource(id = R.string.pace),
                                         value = avgPaceStr,
-                                        unit = " /mi"
+                                        unit = " ${measurementConversionUnit.paceUnit}"
                                     )
                                     AvgStatText(
                                         label = stringResource(id = R.string.heart_rate),
                                         value = avgHeartRateStr,
-                                        unit = " bpm"
+                                        unit = " ${measurementConversionUnit.hrUnit}"
                                     )
                                 }
                             }
@@ -257,7 +259,7 @@ fun PostWorkoutScreen(
                             onRestartClick()
                         }, modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = stringResource(id = R.string.restart))
+                        Text(text = stringResource(id = R.string.backToMainMenu))
                     }
                 }
             }

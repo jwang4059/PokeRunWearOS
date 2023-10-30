@@ -50,6 +50,9 @@
     <string name="restart">Restart</string>
     <string name="newWorkout">New</string>
     <string name="settings">Settings</string>
+    <string name="skip">Skip</string>
+    <string name="back">Back</string>
+    <string name="backToMainMenu">Back to Main Menu</string>
 
     <!-- Exercise in Progress Dialog -->
     <string name="confirm">Confirm</string>

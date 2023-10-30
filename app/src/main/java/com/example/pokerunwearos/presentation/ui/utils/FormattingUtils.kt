@@ -3,6 +3,8 @@ package com.example.pokerunwearos.presentation.ui.utils
 import android.text.style.RelativeSizeSpan
 import androidx.core.text.buildSpannedString
 import androidx.core.text.inSpans
+import java.text.NumberFormat
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 import kotlin.time.DurationUnit
@@ -13,6 +15,12 @@ private val MINUTES_PER_HOUR = TimeUnit.HOURS.toMinutes(1)
 private val SECONDS_PER_MINUTE = TimeUnit.MINUTES.toSeconds(1)
 private val MILLIS_PER_SECOND = TimeUnit.SECONDS.toMillis(1)
 private const val NO_MOVEMENT_PACE = 400_0140.0
+
+
+fun formatNumberWithCommas(number: Long): String {
+    val numberFormat = NumberFormat.getInstance(Locale.US)
+    return numberFormat.format(number)
+}
 
 fun formatElapsedTime(
     time: ElapsedTime, includeSeconds: Boolean = true, includeHundredth: Boolean = false
@@ -66,13 +74,12 @@ fun formatDistance(
     measurementUnit: MeasurementUnit = MeasurementUnit.METRIC,
     hasUnit: Boolean = true
 ) = buildSpannedString {
-    val measurementConversionUnit =
-        if (measurementUnit == MeasurementUnit.METRIC) MetricConversionUnits else ImperialConversionUnits
+    val measurementConversionUnit = MeasurementMap[measurementUnit]!!
 
     append("%02.2f".format(meters / measurementConversionUnit.distanceConversion))
     if (hasUnit) {
         inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
-            append(measurementConversionUnit.distanceUnit)
+            append(" ${measurementConversionUnit.distanceUnit}")
         }
     }
 }
@@ -82,13 +89,12 @@ fun formatSpeed(
     measurementUnit: MeasurementUnit = MeasurementUnit.METRIC,
     hasUnit: Boolean = true
 ) = buildSpannedString {
-    val measurementConversionUnit =
-        if (measurementUnit == MeasurementUnit.METRIC) MetricConversionUnits else ImperialConversionUnits
+    val measurementConversionUnit = MeasurementMap[measurementUnit]!!
 
     append("%02.1f".format(metersPerSec * measurementConversionUnit.speedConversion))
     if (hasUnit) {
         inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
-            append(measurementConversionUnit.speedUnit)
+            append(" ${measurementConversionUnit.speedUnit}")
         }
     }
 }
@@ -96,10 +102,10 @@ fun formatSpeed(
 fun formatPace(
     msPerKm: Double,
     measurementUnit: MeasurementUnit = MeasurementUnit.METRIC,
+    hasUnit: Boolean = false,
     available: Boolean = true
 ) = buildSpannedString {
-    val measurementConversionUnit =
-        if (measurementUnit == MeasurementUnit.METRIC) MetricConversionUnits else ImperialConversionUnits
+    val measurementConversionUnit = MeasurementMap[measurementUnit]!!
 
     if (msPerKm == Double.POSITIVE_INFINITY || msPerKm == NO_MOVEMENT_PACE) {
         if (available) append("__'__\"") else append("N/A")
@@ -114,6 +120,11 @@ fun formatPace(
         append("%02.0f".format(seconds))
         inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
             append("\"")
+        }
+        if (hasUnit) {
+            inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
+                append(" ${measurementConversionUnit.paceUnit}")
+            }
         }
     }
 }

@@ -2,15 +2,15 @@ package com.example.pokerunwearos.presentation.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.AutoCenteringParams
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ListHeader
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
@@ -22,6 +22,8 @@ import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.wear.compose.material.scrollAway
+import com.example.pokerunwearos.R
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
 
 @Composable
 fun MissionSelectionScreen(
@@ -29,7 +31,6 @@ fun MissionSelectionScreen(
     navigateToSummary: () -> Unit = {},
     navigateBack: () -> Unit = {},
 ) {
-
     val listState = rememberScalingLazyListState()
 
     Scaffold(timeText = {
@@ -45,95 +46,57 @@ fun MissionSelectionScreen(
         )
     }) {
         ScalingLazyColumn(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            autoCentering = AutoCenteringParams(itemIndex = 0),
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colors.background),
-            autoCentering = AutoCenteringParams(itemIndex = 0),
         ) {
             item {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            setExerciseGoal(5_000.0)
-                            navigateToSummary()
-                        }, modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "5km")
-                    }
+                ListHeader {
+                    Text(text = "Select goal")
                 }
             }
             item {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            setExerciseGoal(10_000.0)
-                            navigateToSummary()
-                        }, modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "10 km")
-                    }
-                }
+                MissionSelectionButton(onClick = {
+                    setExerciseGoal(5_000.0)
+                    navigateToSummary()
+                }, text = "5 km")
             }
             item {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            setExerciseGoal(15_000.0)
-                            navigateToSummary()
-                        }, modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "15 km")
-                    }
-                }
+                MissionSelectionButton(onClick = {
+                    setExerciseGoal(10_000.0)
+                    navigateToSummary()
+                }, text = "10 km")
             }
             item {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            setExerciseGoal(0.0)
-                            navigateToSummary()
-                        }, modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Skip")
-                    }
-                }
+                MissionSelectionButton(onClick = {
+                    setExerciseGoal(15_000.0)
+                    navigateToSummary()
+                }, text = "15 km")
             }
             item {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(6.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            navigateBack()
-                        }, modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Back")
-                    }
-                }
+                MissionSelectionButton(onClick = {
+                    setExerciseGoal(0.0)
+                    navigateToSummary()
+                }, text = stringResource(id = R.string.skip))
             }
+            item {
+                MissionSelectionButton(onClick = {
+                    navigateBack()
+                }, text = stringResource(id = R.string.back))
+            }
+        }
+    }
+}
+
+@Composable
+fun MissionSelectionButton(
+    onClick: () -> Unit, modifier: Modifier = Modifier, text: String
+) {
+    CenteredRow {
+        Button(onClick = onClick, modifier = modifier.fillMaxWidth()) {
+            Text(text = text)
         }
     }
 }

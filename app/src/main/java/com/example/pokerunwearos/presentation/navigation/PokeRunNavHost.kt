@@ -46,8 +46,7 @@ fun PokeRunNavHost(
         composable(PokeRunDestinations.ExerciseSelectionScreen.route) {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-            ExerciseSelectionScreen(
-                hasCapabilities = { viewModel.hasExerciseCapabilities(uiState.exerciseCapabilities) },
+            ExerciseSelectionScreen(hasCapabilities = viewModel::hasExerciseCapabilities,
                 isTrackingAnotherExercise = uiState.isTrackingAnotherExercise,
                 setExercise = viewModel::setExercise,
                 navigateToUnavailable = {
@@ -72,8 +71,7 @@ fun PokeRunNavHost(
                     }
 
                 },
-                navigateBack = { navController.popBackStack() },
-            )
+                navigateBack = { navController.popBackStack() })
         }
 
         composable(PokeRunDestinations.MissionSelectionScreen.route) {
@@ -119,16 +117,13 @@ fun PokeRunNavHost(
         }
 
         composable(PokeRunDestinations.CountdownScreen.route) {
-            CountdownScreen(
-                startExercise = viewModel::startExercise,
-                navigateToTrackWorkout = {
-                    navController.navigate(PokeRunDestinations.TrackWorkoutScreen.route) {
-                        popUpTo(navController.graph.id) {
-                            inclusive = false
-                        }
+            CountdownScreen(startExercise = viewModel::startExercise, navigateToTrackWorkout = {
+                navController.navigate(PokeRunDestinations.TrackWorkoutScreen.route) {
+                    popUpTo(navController.graph.id) {
+                        inclusive = false
                     }
                 }
-            )
+            })
         }
         composable(PokeRunDestinations.TrackWorkoutScreen.route) {
             val serviceState by viewModel.exerciseServiceState
