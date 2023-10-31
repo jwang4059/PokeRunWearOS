@@ -47,6 +47,11 @@ class ExerciseClientManager @Inject constructor(
         return exerciseCapabilities
     }
 
+    suspend fun getExerciseTrackedStatus(): Int {
+        val exerciseInfo = exerciseClient.getCurrentExerciseInfoAsync().await()
+        return exerciseInfo.exerciseTrackedStatus
+    }
+
     suspend fun isExerciseInProgress(): Boolean {
         val exerciseInfo = exerciseClient.getCurrentExerciseInfoAsync().await()
         return exerciseInfo.exerciseTrackedStatus == ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.health.services.client.data.ExerciseTrackedStatus
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
@@ -21,8 +22,8 @@ import androidx.wear.compose.material.dialog.Dialog
 import com.example.pokerunwearos.R
 
 @Composable
-fun ExerciseInProgressAlert(isTrackingExercise: Boolean) {
-    val showDialog = remember { mutableStateOf(isTrackingExercise) }
+fun ExerciseInProgressAlert(trackedStatus: Int) {
+    val showDialog = remember { mutableStateOf(trackedStatus == ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS || trackedStatus == ExerciseTrackedStatus.OTHER_APP_IN_PROGRESS) }
     val context = LocalContext.current
     Dialog(showDialog = showDialog.value,
         onDismissRequest = { showDialog.value = false }) {
@@ -42,7 +43,6 @@ fun ExerciseInProgressAlert(isTrackingExercise: Boolean) {
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(id = R.string.deny)
                     )
-
                 }
             },
             positiveButton = {
@@ -58,8 +58,13 @@ fun ExerciseInProgressAlert(isTrackingExercise: Boolean) {
                 }
             }
         ) {
+            val dialogText = when (trackedStatus) {
+                ExerciseTrackedStatus.OTHER_APP_IN_PROGRESS -> stringResource(id = R.string.end_other_exercise)
+                ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS -> stringResource(id = R.string.end_current_exercise)
+                else -> ""
+            }
             Text(
-                text = stringResource(id = R.string.ending_continue),
+                text = dialogText,
                 textAlign = TextAlign.Center
             )
 

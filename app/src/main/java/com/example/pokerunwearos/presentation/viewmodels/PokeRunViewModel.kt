@@ -8,6 +8,7 @@ import androidx.health.services.client.data.DataTypeAvailability
 import androidx.health.services.client.data.DataTypeCondition
 import androidx.health.services.client.data.ExerciseGoal
 import androidx.health.services.client.data.ExerciseGoalType
+import androidx.health.services.client.data.ExerciseTrackedStatus
 import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.data.ExerciseTypeCapabilities
 import androidx.lifecycle.ViewModel
@@ -52,6 +53,7 @@ class PokeRunViewModel @Inject constructor(
         emit(
             ExerciseInfo(
                 exerciseCapabilities = healthServicesRepository.getExerciseCapabilities(),
+                trackedStatus = healthServicesRepository.getExerciseTrackedStatus(),
                 isTrackingAnotherExercise = healthServicesRepository.isTrackingExerciseInAnotherApp(),
             )
         )
@@ -68,7 +70,8 @@ class PokeRunViewModel @Inject constructor(
             currentExerciseGoal = exerciseGoal,
             stepsDaily = stepsDaily,
             exerciseCapabilities = exerciseInfo.exerciseCapabilities,
-            isTrackingAnotherExercise = exerciseInfo.isTrackingAnotherExercise
+            trackedStatus = exerciseInfo.trackedStatus,
+            isTrackingAnotherExercise = exerciseInfo.isTrackingAnotherExercise,
         )
     }
 
@@ -216,6 +219,7 @@ class PokeRunViewModel @Inject constructor(
 data class ExerciseInfo(
     val exerciseCapabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>? = null,
     val isTrackingAnotherExercise: Boolean = false,
+    val trackedStatus: Int = ExerciseTrackedStatus.UNKNOWN,
 )
 
 data class HeartRateUiState(
@@ -230,4 +234,5 @@ data class PokeRunUiState(
     val stepsDaily: Long? = null,
     val exerciseCapabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>? = null,
     val isTrackingAnotherExercise: Boolean = false,
+    val trackedStatus: Int = ExerciseTrackedStatus.UNKNOWN,
 )

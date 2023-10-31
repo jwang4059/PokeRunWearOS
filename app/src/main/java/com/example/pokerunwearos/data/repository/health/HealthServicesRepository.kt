@@ -45,6 +45,8 @@ class HealthServicesRepository @Inject constructor(
 
     suspend fun getExerciseCapabilities() = exerciseClientManager.getExerciseCapabilities()
 
+    suspend fun getExerciseTrackedStatus() = exerciseClientManager.getExerciseTrackedStatus()
+
     suspend fun isExerciseInProgress(): Boolean = exerciseClientManager.isExerciseInProgress()
 
     suspend fun isTrackingExerciseInAnotherApp() =
@@ -58,8 +60,7 @@ class HealthServicesRepository @Inject constructor(
 
     fun prepareExercise(exerciseType: ExerciseType) = exerciseService?.prepareExercise(exerciseType)
     fun startExercise(
-        exerciseType: ExerciseType,
-        exerciseGoal: ExerciseGoal<Double>?
+        exerciseType: ExerciseType, exerciseGoal: ExerciseGoal<Double>?
     ) = exerciseService?.startExercise(exerciseType, exerciseGoal)
 
     fun pauseExercise() = exerciseService?.pauseExercise()

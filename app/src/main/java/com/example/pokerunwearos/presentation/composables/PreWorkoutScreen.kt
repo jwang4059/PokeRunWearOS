@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.health.services.client.data.ExerciseTrackedStatus
 import androidx.health.services.client.data.LocationAvailability
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Button
@@ -35,18 +36,26 @@ import com.example.pokerunwearos.presentation.ui.utils.TREADMILL
 import com.example.pokerunwearos.presentation.ui.utils.formatNumberWithCommas
 import com.example.pokerunwearos.presentation.ui.widgets.CenteredColumn
 import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
+import com.example.pokerunwearos.presentation.ui.widgets.ExerciseInProgressAlert
 import com.example.pokerunwearos.presentation.ui.widgets.Section
 import kotlinx.coroutines.launch
 
 @Composable
 fun PreWorkoutScreen(
-    prepareExercise: () -> Unit,
     serviceState: ServiceState,
     permissions: Array<String>,
+    trackedStatus: Int,
     exerciseType: String?,
     exerciseGoal: Double?,
+    prepareExercise: () -> Unit,
     navigateToCountdown: () -> Unit = {},
 ) {
+    if (trackedStatus == ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS || trackedStatus == ExerciseTrackedStatus.OTHER_APP_IN_PROGRESS) {
+        ExerciseInProgressAlert(
+            trackedStatus = trackedStatus
+        )
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->

@@ -85,10 +85,10 @@ import kotlin.time.toKotlinDuration
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TrackWorkoutScreen(
+    serviceState: ServiceState,
+    onResumeClick: () -> Unit = {},
     onPauseClick: () -> Unit = {},
     onEndClick: () -> Unit = {},
-    onResumeClick: () -> Unit = {},
-    serviceState: ServiceState,
     saveWorkout: (workout: Workout) -> Unit = {},
     navigateToExerciseSelection: () -> Unit = {},
     navigateToPostWorkout: () -> Unit = {},
@@ -160,6 +160,32 @@ fun TrackWorkoutScreen(
                     ).toString()
                 }
             }
+
+            fun endWorkout() {
+                saveWorkout(
+                    Workout(
+                        exerciseType = exerciseConfig?.exerciseType,
+                        timeMillis = activeDuration.toMillis(),
+                        distance = tempDistance.value,
+                        steps = tempSteps.value,
+                        calories = tempCalories.value,
+                        avgSpeed = tempAverageSpeed.value,
+                        avgPace = tempAveragePace.value,
+                        avgHeartRate = tempAverageHeartRate.value,
+                        distanceGoal = exerciseConfig?.exerciseGoals?.filter {
+                            it.exerciseGoalType == ExerciseGoalType.ONE_TIME_GOAL && it.dataTypeCondition.dataType == DataType.DISTANCE_TOTAL && it.dataTypeCondition.comparisonType == ComparisonType.GREATER_THAN_OR_EQUAL
+                        }
+                            ?.maxByOrNull { it.dataTypeCondition.threshold.toDouble() }?.dataTypeCondition?.threshold?.toDouble(),
+                        date = Date(),
+                    )
+                )
+                navigateToPostWorkout()
+            }
+
+            LaunchedEffect(exerciseStateChange) {
+                if (exerciseStateChange.exerciseState.isEnding || exerciseStateChange.exerciseState.isEnded) endWorkout()
+            }
+
 
             LaunchedEffect(exerciseStateChange) {
                 if (exerciseStateChange is ExerciseStateChange.ActiveStateChange) {
@@ -341,27 +367,7 @@ fun TrackWorkoutScreen(
 
                                     // Finish Button
                                     MenuButton(
-                                        onClick = {
-                                            onEndClick()
-                                            saveWorkout(
-                                                Workout(
-                                                    exerciseType = exerciseConfig?.exerciseType,
-                                                    timeMillis = activeDuration.toMillis(),
-                                                    distance = tempDistance.value,
-                                                    steps = tempSteps.value,
-                                                    calories = tempCalories.value,
-                                                    avgSpeed = tempAverageSpeed.value,
-                                                    avgPace = tempAveragePace.value,
-                                                    avgHeartRate = tempAverageHeartRate.value,
-                                                    distanceGoal = exerciseConfig?.exerciseGoals?.filter {
-                                                        it.exerciseGoalType == ExerciseGoalType.ONE_TIME_GOAL && it.dataTypeCondition.dataType == DataType.DISTANCE_TOTAL && it.dataTypeCondition.comparisonType == ComparisonType.GREATER_THAN_OR_EQUAL
-                                                    }
-                                                        ?.maxByOrNull { it.dataTypeCondition.threshold.toDouble() }?.dataTypeCondition?.threshold?.toDouble(),
-                                                    date = Date(),
-                                                )
-                                            )
-                                            navigateToPostWorkout()
-                                        },
+                                        onClick = { onEndClick() },
                                         imageVector = Icons.Default.Close,
                                         contextDescription = stringResource(id = R.string.finish)
                                     )

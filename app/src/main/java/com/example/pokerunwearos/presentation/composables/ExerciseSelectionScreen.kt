@@ -27,19 +27,16 @@ import com.example.pokerunwearos.presentation.ui.utils.TREADMILL
 import com.example.pokerunwearos.presentation.ui.utils.WALKING
 import com.example.pokerunwearos.presentation.ui.utils.exerciseTypes
 import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
-import com.example.pokerunwearos.presentation.ui.widgets.ExerciseInProgressAlert
 
 @Composable
 fun ExerciseSelectionScreen(
     hasCapabilities: (Array<ExerciseType>, Boolean) -> Boolean,
-    isTrackingAnotherExercise: Boolean,
     setExercise: (String) -> Unit,
     navigateToUnavailable: () -> Unit = {},
     navigateToNextScreen: () -> Unit = {},
     navigateBack: () -> Unit = {},
 ) {
     if (!hasCapabilities(exerciseTypes, false)) navigateToUnavailable()
-    else if (isTrackingAnotherExercise) ExerciseInProgressAlert(isTrackingExercise = true)
 
     val listState = rememberScalingLazyListState()
 
