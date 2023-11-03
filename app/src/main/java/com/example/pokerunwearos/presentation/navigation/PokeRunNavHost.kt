@@ -110,6 +110,7 @@ fun PokeRunNavHost(
                 exerciseType = uiState.currentExerciseType,
                 exerciseGoal = uiState.currentExerciseGoal,
                 prepareExercise = viewModel::prepareExercise,
+                endExercise = viewModel::endExercise,
                 navigateToCountdown = {
                     navController.navigate(PokeRunDestinations.CountdownScreen.route)
                 },
@@ -129,8 +130,7 @@ fun PokeRunNavHost(
         composable(PokeRunDestinations.TrackWorkoutScreen.route) {
             val serviceState by viewModel.exerciseServiceState
 
-            TrackWorkoutScreen(
-                serviceState = serviceState,
+            TrackWorkoutScreen(serviceState = serviceState,
                 onResumeClick = viewModel::resumeExercise,
                 onPauseClick = viewModel::pauseExercise,
                 onEndClick = viewModel::endExercise,
@@ -143,7 +143,13 @@ fun PokeRunNavHost(
                         }
                     }
                 },
-            )
+                navigateToMain = {
+                    navController.navigate(PokeRunDestinations.StartScreen.route) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
+                    }
+                })
         }
 
         composable(PokeRunDestinations.PostWorkoutScreen.route) {

@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.health.services.client.data.ExerciseState
 import androidx.health.services.client.data.ExerciseTrackedStatus
 import androidx.health.services.client.data.LocationAvailability
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -38,7 +39,6 @@ import com.example.pokerunwearos.presentation.ui.widgets.CenteredColumn
 import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
 import com.example.pokerunwearos.presentation.ui.widgets.ExerciseInProgressAlert
 import com.example.pokerunwearos.presentation.ui.widgets.Section
-import kotlinx.coroutines.launch
 
 @Composable
 fun PreWorkoutScreen(
@@ -47,12 +47,13 @@ fun PreWorkoutScreen(
     trackedStatus: Int,
     exerciseType: String?,
     exerciseGoal: Double?,
-    prepareExercise: () -> Unit,
+    prepareExercise: () -> Unit = {},
+    endExercise: () -> Unit = {},
     navigateToCountdown: () -> Unit = {},
 ) {
     if (trackedStatus == ExerciseTrackedStatus.OWNED_EXERCISE_IN_PROGRESS || trackedStatus == ExerciseTrackedStatus.OTHER_APP_IN_PROGRESS) {
         ExerciseInProgressAlert(
-            trackedStatus = trackedStatus
+            trackedStatus = trackedStatus, endExercise = endExercise
         )
     }
 
@@ -69,14 +70,17 @@ fun PreWorkoutScreen(
     when (serviceState) {
         is ServiceState.Connected -> {
             val location by serviceState.locationAvailabilityState.collectAsStateWithLifecycle()
+            val getExerciseServiceState by serviceState.exerciseServiceState.collectAsStateWithLifecycle()
+            val (exerciseState) = getExerciseServiceState
 //            val gpsAcquired =
 //                location == LocationAvailability.ACQUIRED_TETHERED || location == LocationAvailability.ACQUIRED_UNTETHERED
 
             LaunchedEffect(Unit) {
-                launch {
-                    permissionLauncher.launch(permissions)
-                    prepareExercise()
-                }
+                permissionLauncher.launch(permissions)
+            }
+
+            LaunchedEffect(exerciseState) {
+                if (exerciseState != ExerciseState.PREPARING && exerciseState != ExerciseState.ACTIVE) prepareExercise()
             }
 
             Scaffold(timeText = {
@@ -114,6 +118,7 @@ fun PreWorkoutScreen(
                             CenteredColumn {
                                 Button(
                                     onClick = { navigateToCountdown() },
+                                    enabled = exerciseState == ExerciseState.PREPARING,
                                     colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primaryVariant),
                                     modifier = Modifier.padding(8.dp)
                                 ) {

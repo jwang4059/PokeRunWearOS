@@ -92,6 +92,7 @@ fun TrackWorkoutScreen(
     saveWorkout: (workout: Workout) -> Unit = {},
     navigateToExerciseSelection: () -> Unit = {},
     navigateToPostWorkout: () -> Unit = {},
+    navigateToMain: () -> Unit = {},
 ) {
     val chronoTickJob = remember { mutableStateOf<Job?>(null) }
 
@@ -183,11 +184,6 @@ fun TrackWorkoutScreen(
             }
 
             LaunchedEffect(exerciseStateChange) {
-                if (exerciseStateChange.exerciseState.isEnding || exerciseStateChange.exerciseState.isEnded) endWorkout()
-            }
-
-
-            LaunchedEffect(exerciseStateChange) {
                 if (exerciseStateChange is ExerciseStateChange.ActiveStateChange) {
                     val timeOffset =
                         (System.currentTimeMillis() - exerciseStateChange.durationCheckPoint.time.toEpochMilli())
@@ -199,6 +195,7 @@ fun TrackWorkoutScreen(
                 } else {
                     chronoTickJob.value?.cancel()
                 }
+                if (exerciseStateChange.exerciseState.isEnding || exerciseStateChange.exerciseState.isEnded) endWorkout()
             }
 
             val state = rememberLazyListState()
@@ -321,57 +318,65 @@ fun TrackWorkoutScreen(
                     item {
                         Section(modifier = Modifier.fillParentMaxSize()) {
                             CenteredColumn {
-                                Row {
-                                    Text(text = elapsedTime.value, fontSize = 14.sp)
-                                }
-                                Row(
-                                    horizontalArrangement = Arrangement.SpaceAround,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    // New Workout Button
-                                    MenuButton(
-                                        onClick = { navigateToExerciseSelection() },
-                                        imageVector = Icons.Default.Add,
-                                        contextDescription = stringResource(id = R.string.newWorkout)
-                                    )
+                                if (exerciseConfig != null) {
+                                    Row {
+                                        Text(text = elapsedTime.value, fontSize = 14.sp)
+                                    }
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceAround,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        // New Workout Button
+                                        MenuButton(
+                                            onClick = { navigateToExerciseSelection() },
+                                            imageVector = Icons.Default.Add,
+                                            contextDescription = stringResource(id = R.string.newWorkout)
+                                        )
 
 
-                                    if (exerciseStateChange.exerciseState.isPaused) {
-                                        MenuButton(
-                                            onClick = { onResumeClick() },
-                                            imageVector = Icons.Default.PlayArrow,
-                                            contextDescription = stringResource(id = R.string.resume)
-                                        )
-                                    } else {
-                                        MenuButton(
-                                            onClick = { onPauseClick() },
-                                            imageVector = Icons.Default.Pause,
-                                            contextDescription = stringResource(id = R.string.pause)
-                                        )
+                                        if (exerciseStateChange.exerciseState.isPaused) {
+                                            MenuButton(
+                                                onClick = { onResumeClick() },
+                                                imageVector = Icons.Default.PlayArrow,
+                                                contextDescription = stringResource(id = R.string.resume)
+                                            )
+                                        } else {
+                                            MenuButton(
+                                                onClick = { onPauseClick() },
+                                                imageVector = Icons.Default.Pause,
+                                                contextDescription = stringResource(id = R.string.pause)
+                                            )
+                                        }
+
                                     }
 
-                                }
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceAround,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        // Settings Button
+                                        MenuButton(
+                                            onClick = { /*TODO*/ },
+                                            imageVector = Icons.Default.Settings,
+                                            contextDescription = stringResource(id = R.string.settings)
+                                        )
 
-                                Row(
-                                    horizontalArrangement = Arrangement.SpaceAround,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    // Settings Button
-                                    MenuButton(
-                                        onClick = { /*TODO*/ },
-                                        imageVector = Icons.Default.Settings,
-                                        contextDescription = stringResource(id = R.string.settings)
-                                    )
+                                        // Finish Button
+                                        MenuButton(
+                                            onClick = { onEndClick() },
+                                            imageVector = Icons.Default.Close,
+                                            contextDescription = stringResource(id = R.string.finish)
+                                        )
 
-                                    // Finish Button
-                                    MenuButton(
-                                        onClick = { onEndClick() },
-                                        imageVector = Icons.Default.Close,
-                                        contextDescription = stringResource(id = R.string.finish)
-                                    )
-
+                                    }
+                                } else {
+                                    Button(onClick = {
+                                        navigateToMain()
+                                    }, modifier = Modifier.fillMaxWidth()) {
+                                        Text(text = "Exit Workout")
+                                    }
                                 }
                             }
                         }

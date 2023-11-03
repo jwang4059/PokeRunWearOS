@@ -74,6 +74,9 @@ class ForegroundService : LifecycleService() {
     private val _exerciseServiceState = MutableStateFlow(ExerciseServiceState())
     val exerciseServiceState: StateFlow<ExerciseServiceState> = _exerciseServiceState.asStateFlow()
 
+    fun resetExerciseServiceState() {
+        _exerciseServiceState.value = ExerciseServiceState()
+    }
 
     private suspend fun isExerciseInProgress() = exerciseClientManager.isExerciseInProgress()
 
@@ -150,16 +153,16 @@ class ForegroundService : LifecycleService() {
                     launch {
                         exerciseClientManager.exerciseUpdateFlow.collect {
                             when (it) {
-                                is ExerciseMessage.ExerciseUpdateMessage ->
-                                    processExerciseUpdate(it.exerciseUpdate)
-                                is ExerciseMessage.LapSummaryMessage ->
-                                    _exerciseServiceState.update { oldState ->
-                                        oldState.copy(
-                                            exerciseLaps = it.lapSummary.lapCount
-                                        )
-                                    }
-                                is ExerciseMessage.LocationAvailabilityMessage ->
-                                    _locationAvailabilityState.value = it.locationAvailability
+                                is ExerciseMessage.ExerciseUpdateMessage -> processExerciseUpdate(it.exerciseUpdate)
+
+                                is ExerciseMessage.LapSummaryMessage -> _exerciseServiceState.update { oldState ->
+                                    oldState.copy(
+                                        exerciseLaps = it.lapSummary.lapCount
+                                    )
+                                }
+
+                                is ExerciseMessage.LocationAvailabilityMessage -> _locationAvailabilityState.value =
+                                    it.locationAvailability
 
                             }
                         }
@@ -224,6 +227,7 @@ class ForegroundService : LifecycleService() {
                         "Your exercise was auto ended because it lost the required permissions"
                     )
                 }
+
                 else -> {
                 }
             }
@@ -244,21 +248,23 @@ class ForegroundService : LifecycleService() {
                         ExerciseState.ACTIVE -> ExerciseStateChange.ActiveStateChange(
                             exerciseUpdate.activeDurationCheckpoint!!
                         )
+
                         else -> ExerciseStateChange.OtherStateChange(exerciseUpdate.exerciseStateInfo.state)
                     }
                 )
             }
         }
         _exerciseServiceState.update { it ->
-            it.copy(exerciseState = exerciseUpdate.exerciseStateInfo.state,
+            it.copy(
+                exerciseState = exerciseUpdate.exerciseStateInfo.state,
                 exerciseMetrics = exerciseUpdate.latestMetrics,
                 exerciseDurationUpdate = exerciseUpdate.activeDurationCheckpoint?.let {
                     ActiveDurationUpdate(
-                        it.activeDuration,
-                        Instant.now()
+                        it.activeDuration, Instant.now()
                     )
                 },
-                exerciseConfig = exerciseUpdate.exerciseConfig)
+                exerciseConfig = exerciseUpdate.exerciseConfig
+            )
         }
         lastActiveDurationCheckpoint = exerciseUpdate.activeDurationCheckpoint
 
@@ -340,12 +346,9 @@ class ForegroundService : LifecycleService() {
         )
         // Build the notification.
         val notificationBuilder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL)
-            .setContentTitle(NOTIFICATION_TITLE)
-            .setContentText(NOTIFICATION_TEXT)
-            .setSmallIcon(R.drawable.ic_baseline_directions_run_24)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-            .setCategory(NotificationCompat.CATEGORY_WORKOUT)
+            .setContentTitle(NOTIFICATION_TITLE).setContentText(NOTIFICATION_TEXT)
+            .setSmallIcon(R.drawable.ic_baseline_directions_run_24).setContentIntent(pendingIntent)
+            .setOngoing(true).setCategory(NotificationCompat.CATEGORY_WORKOUT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
         // Ongoing Activity allows an ongoing Notification to appear on additional surfaces in the
@@ -353,8 +356,7 @@ class ForegroundService : LifecycleService() {
 
         val duration = if (lastActiveDurationCheckpoint != null) {
             lastActiveDurationCheckpoint!!.activeDuration + Duration.between(
-                lastActiveDurationCheckpoint!!.time,
-                Instant.now()
+                lastActiveDurationCheckpoint!!.time, Instant.now()
             )
         } else {
             Duration.ZERO
@@ -362,17 +364,13 @@ class ForegroundService : LifecycleService() {
 
 
         val startMillis = SystemClock.elapsedRealtime() - duration.toMillis()
-        val ongoingActivityStatus = Status.Builder()
-            .addTemplate(ONGOING_STATUS_TEMPLATE)
-            .addPart("duration", Status.StopwatchPart(startMillis))
-            .build()
+        val ongoingActivityStatus = Status.Builder().addTemplate(ONGOING_STATUS_TEMPLATE)
+            .addPart("duration", Status.StopwatchPart(startMillis)).build()
         val ongoingActivity =
             OngoingActivity.Builder(applicationContext, NOTIFICATION_ID, notificationBuilder)
                 .setAnimatedIcon(R.drawable.ic_baseline_directions_run_24)
                 .setStaticIcon(R.drawable.ic_baseline_directions_run_24)
-                .setTouchIntent(pendingIntent)
-                .setStatus(ongoingActivityStatus)
-                .build()
+                .setTouchIntent(pendingIntent).setStatus(ongoingActivityStatus).build()
 
         ongoingActivity.apply(applicationContext)
 
@@ -386,8 +384,7 @@ class ForegroundService : LifecycleService() {
 
     companion object {
         private const val NOTIFICATION_ID = 1
-        private const val NOTIFICATION_CHANNEL =
-            "ONGOING_EXERCISE"
+        private const val NOTIFICATION_CHANNEL = "ONGOING_EXERCISE"
         private const val NOTIFICATION_CHANNEL_DISPLAY = "Ongoing Exercise"
         private const val NOTIFICATION_TITLE = "Exercise Sample"
         private const val NOTIFICATION_TEXT = "Ongoing Exercise"
@@ -402,7 +399,9 @@ class PassiveDataService : PassiveListenerService() {
     lateinit var passiveDataRepository: PassiveDataRepository
     override fun onNewDataPointsReceived(dataPoints: DataPointContainer) {
         runBlocking {
-            passiveDataRepository.setStepsDaily(dataPoints.getData(DataType.STEPS_DAILY).last().value)
+            passiveDataRepository.setStepsDaily(
+                dataPoints.getData(DataType.STEPS_DAILY).last().value
+            )
         }
     }
 }

@@ -99,6 +99,10 @@ class HealthServicesRepository @Inject constructor(
             applicationContext.bindService(intent, connection, Context.BIND_AUTO_CREATE)
         }
     }
+
+    fun resetService() {
+        exerciseService?.resetExerciseServiceState()
+    }
 }
 
 /** Store exercise values in the service state. While the service is connected,

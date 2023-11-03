@@ -214,6 +214,8 @@ class PokeRunViewModel @Inject constructor(
     fun saveWorkout(workout: Workout) = viewModelScope.launch {
         workoutRepository.insertWorkout(workout)
     }
+
+    fun resetService() = viewModelScope.launch { healthServicesRepository.resetService() }
 }
 
 data class ExerciseInfo(

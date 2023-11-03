@@ -1,8 +1,6 @@
 package com.example.pokerunwearos.presentation.composables
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -12,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,6 +20,7 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
+import com.example.pokerunwearos.presentation.ui.widgets.CenteredColumn
 import com.example.pokerunwearos.presentation.ui.widgets.Section
 import kotlinx.coroutines.delay
 
@@ -52,11 +50,10 @@ fun CountdownScreen(
         if (countdownText > 0) {
             Section(modifier = Modifier
                 .clickable {
-                    navigateToTrackWorkout()
-                    startExercise()
+                    timeRemaining = 0
                 }
                 .fillMaxSize()) {
-                Column (verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                CenteredColumn {
                     Text(
                         text = countdownText.toString(),
                         fontSize = 48.sp,
