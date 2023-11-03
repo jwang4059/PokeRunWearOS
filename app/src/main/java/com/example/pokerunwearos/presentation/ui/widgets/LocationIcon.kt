@@ -23,33 +23,22 @@ fun LocationIcon(locationAvailability: LocationAvailability) {
     val hasGPS =
         locationAvailability == LocationAvailability.ACQUIRED_TETHERED || locationAvailability == LocationAvailability.ACQUIRED_UNTETHERED
 
-    if (hasGPS) {
-        Icon(
-            imageVector = Icons.Default.LocationOn,
-            contentDescription = "Location On",
-            tint = Color.Green,
-            modifier = Modifier
-                .size(28.dp)
-                .padding(4.dp)
-        )
-    } else {
-        val infiniteTransition = rememberInfiniteTransition()
-        val animatedAlpha by infiniteTransition.animateFloat(
-            initialValue = 0F,
-            targetValue = 1F,
-            animationSpec = infiniteRepeatable(
-                animation = tween(500), repeatMode = RepeatMode.Reverse
-            ),
-        )
+    val infiniteTransition = rememberInfiniteTransition()
+    val animatedAlpha by infiniteTransition.animateFloat(
+        initialValue = 0F,
+        targetValue = 1F,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500), repeatMode = RepeatMode.Reverse
+        ),
+    )
 
-        Icon(imageVector = Icons.Default.LocationOn,
-            contentDescription = "Location On",
-            tint = Color.Green,
-            modifier = Modifier
-                .size(28.dp)
-                .graphicsLayer {
-                    alpha = animatedAlpha
-                }
-                .padding(4.dp))
-    }
+    Icon(imageVector = Icons.Default.LocationOn,
+        contentDescription = "Location On",
+        tint = Color.Green,
+        modifier = Modifier
+            .size(28.dp)
+            .graphicsLayer {
+                alpha = if (!hasGPS) animatedAlpha else 1f
+            }
+            .padding(4.dp))
 }

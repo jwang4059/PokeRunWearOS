@@ -96,6 +96,7 @@ class ExerciseClientManager @Inject constructor(
         val capabilitiesMap = getExerciseCapabilities()
         val capabilities = capabilitiesMap?.get(exerciseType) ?: return
         val dataTypes = setOf(
+            DataType.LOCATION,
             DataType.HEART_RATE_BPM,
             DataType.HEART_RATE_BPM_STATS,
             DataType.CALORIES_TOTAL,
