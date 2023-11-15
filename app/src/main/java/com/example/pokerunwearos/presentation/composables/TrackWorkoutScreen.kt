@@ -2,9 +2,11 @@ package com.example.pokerunwearos.presentation.composables
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -13,10 +15,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -38,7 +42,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.health.services.client.data.ComparisonType
@@ -48,6 +55,8 @@ import androidx.health.services.client.data.ExerciseGoalType
 import androidx.health.services.client.data.LocationAvailability
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ExperimentalWearMaterialApi
+import androidx.wear.compose.material.FractionalThreshold
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -56,6 +65,8 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
+import androidx.wear.compose.material.rememberSwipeableState
+import androidx.wear.compose.material.swipeable
 import com.example.pokerunwearos.R
 import com.example.pokerunwearos.data.models.Workout
 import com.example.pokerunwearos.data.repository.health.ServiceState
@@ -80,9 +91,10 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.util.Date
+import kotlin.math.roundToInt
 import kotlin.time.toKotlinDuration
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalWearMaterialApi::class)
 @Composable
 fun TrackWorkoutScreen(
     serviceState: ServiceState,
@@ -202,186 +214,143 @@ fun TrackWorkoutScreen(
             val snappingLayout = remember(state) { SnapLayoutInfoProvider(state) }
             val flingBehavior = rememberSnapFlingBehavior(snappingLayout)
 
+            val width = LocalConfiguration.current.screenWidthDp.dp
+
+            val swipeableState = rememberSwipeableState(0)
+            val sizePx = with(LocalDensity.current) { width.toPx() }
+            val anchors = mapOf(-sizePx to 0, 0f to 1)
+
             Scaffold(vignette = {
                 Vignette(vignettePosition = VignettePosition.TopAndBottom)
             }, positionIndicator = {
                 PositionIndicator(lazyListState = state)
             }) {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colors.background),
-                    state = state,
-                    flingBehavior = flingBehavior
+                Box(
+                    modifier = Modifier.swipeable(
+                        state = swipeableState,
+                        anchors = anchors,
+                        thresholds = { _, _ -> FractionalThreshold(0.5f) },
+                        orientation = Orientation.Horizontal
+                    )
                 ) {
-                    item {
-                        WorkoutSection(
-                            exerciseConfig = exerciseConfig,
-                            heartRate = tempHeartRate.value,
-                            location = location,
-                            modifier = Modifier.fillParentMaxSize()
-                        ) {
-                            // Distance
-                            val distanceStr = if (distance != null) formatDistance(
-                                distance, MeasurementUnit.IMPERIAL
-                            ).toString() else formatDistance(
-                                tempDistance.value, MeasurementUnit.IMPERIAL
-                            ).toString()
-
-                            if (distance != null) tempDistance.value = distance
-
-                            // Pace
-                            val paceStr =
-                                formatPace(tempPace.value, MeasurementUnit.IMPERIAL).toString()
-
-                            Column {
-                                WorkoutSectionRow(
-                                    name1 = stringResource(id = R.string.duration),
-                                    value1 = elapsedTime.value,
-                                )
-
-                                WorkoutSectionRow(
-                                    name1 = stringResource(id = R.string.distance),
-                                    value1 = distanceStr,
-                                    name2 = stringResource(id = R.string.pace),
-                                    value2 = paceStr
-                                )
-                            }
-                        }
-                    }
-
-                    // Calories , Speed
-                    // Steps , Avg Pace
-                    item {
-                        WorkoutSection(
-                            exerciseConfig = exerciseConfig,
-                            heartRate = tempHeartRate.value,
-                            location = location,
-                            modifier = Modifier.fillParentMaxSize()
-                        ) {
-                            // Calories
-                            val caloriesStr =
-                                if (calories != null) formatCalories(calories).toString() else formatCalories(
-                                    tempCalories.value
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colors.background),
+                        state = state,
+                        flingBehavior = flingBehavior
+                    ) {
+                        item {
+                            WorkoutSection(
+                                exerciseConfig = exerciseConfig,
+                                heartRate = tempHeartRate.value,
+                                location = location,
+                                modifier = Modifier.fillParentMaxSize()
+                            ) {
+                                // Distance
+                                val distanceStr = if (distance != null) formatDistance(
+                                    distance, MeasurementUnit.IMPERIAL
+                                ).toString() else formatDistance(
+                                    tempDistance.value, MeasurementUnit.IMPERIAL
                                 ).toString()
 
-                            if (calories != null) tempCalories.value = calories
+                                if (distance != null) tempDistance.value = distance
 
-                            // Speed
-                            val speedStr =
-                                formatSpeed(tempSpeed.value, MeasurementUnit.IMPERIAL).toString()
+                                // Pace
+                                val paceStr =
+                                    formatPace(tempPace.value, MeasurementUnit.IMPERIAL).toString()
 
-                            // Steps
-                            val stepsStr = steps?.toString() ?: tempSteps.value.toString()
+                                Column {
+                                    WorkoutSectionRow(
+                                        name1 = stringResource(id = R.string.duration),
+                                        value1 = elapsedTime.value,
+                                    )
 
-                            if (steps != null) tempSteps.value = steps
-
-                            // Average Pace
-                            val avgPaceStr = if (averagePace != null) formatPace(
-                                averagePace, MeasurementUnit.IMPERIAL
-                            ).toString() else formatPace(
-                                tempAveragePace.value, MeasurementUnit.IMPERIAL
-                            ).toString()
-
-                            if (averagePace != null) tempAveragePace.value = averagePace
-
-                            Column {
-                                WorkoutSectionRow(
-                                    name1 = stringResource(id = R.string.calories),
-                                    value1 = caloriesStr,
-                                    name2 = stringResource(id = R.string.speed),
-                                    value2 = speedStr
-                                )
-                                WorkoutSectionRow(
-                                    name1 = stringResource(id = R.string.steps),
-                                    value1 = stepsStr,
-                                    name2 = stringResource(
-                                        id = R.string.avgPace
-                                    ),
-                                    value2 = avgPaceStr,
-                                )
+                                    WorkoutSectionRow(
+                                        name1 = stringResource(id = R.string.distance),
+                                        value1 = distanceStr,
+                                        name2 = stringResource(id = R.string.pace),
+                                        value2 = paceStr
+                                    )
+                                }
                             }
                         }
-                    }
 
-//                    item {
-//                        Row {
-//                            Icon(
-//                                imageVector = Icons.Default._360,
-//                                contentDescription = stringResource(id = R.string.laps)
-//                            )
-//                            Text(text = exerciseLaps.toString())
-//
-//                        }
-//                    }
+                        // Calories , Speed
+                        // Steps , Avg Pace
+                        item {
+                            WorkoutSection(
+                                exerciseConfig = exerciseConfig,
+                                heartRate = tempHeartRate.value,
+                                location = location,
+                                modifier = Modifier.fillParentMaxSize()
+                            ) {
+                                // Calories
+                                val caloriesStr =
+                                    if (calories != null) formatCalories(calories).toString() else formatCalories(
+                                        tempCalories.value
+                                    ).toString()
 
-                    item {
-                        Section(modifier = Modifier.fillParentMaxSize()) {
-                            CenteredColumn {
-                                if (exerciseConfig != null) {
-                                    Row {
-                                        Text(text = elapsedTime.value, fontSize = 14.sp)
-                                    }
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceAround,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        // New Workout Button
-                                        MenuButton(
-                                            onClick = { navigateToExerciseSelection() },
-                                            imageVector = Icons.Default.Add,
-                                            contextDescription = stringResource(id = R.string.newWorkout)
-                                        )
+                                if (calories != null) tempCalories.value = calories
 
+                                // Speed
+                                val speedStr = formatSpeed(
+                                    tempSpeed.value, MeasurementUnit.IMPERIAL
+                                ).toString()
 
-                                        if (exerciseStateChange.exerciseState.isPaused) {
-                                            MenuButton(
-                                                onClick = { onResumeClick() },
-                                                imageVector = Icons.Default.PlayArrow,
-                                                contextDescription = stringResource(id = R.string.resume)
-                                            )
-                                        } else {
-                                            MenuButton(
-                                                onClick = { onPauseClick() },
-                                                imageVector = Icons.Default.Pause,
-                                                contextDescription = stringResource(id = R.string.pause)
-                                            )
-                                        }
+                                // Steps
+                                val stepsStr = steps?.toString() ?: tempSteps.value.toString()
 
-                                    }
+                                if (steps != null) tempSteps.value = steps
 
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceAround,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        // Settings Button
-                                        MenuButton(
-                                            onClick = { /*TODO*/ },
-                                            imageVector = Icons.Default.Settings,
-                                            contextDescription = stringResource(id = R.string.settings)
-                                        )
+                                // Average Pace
+                                val avgPaceStr = if (averagePace != null) formatPace(
+                                    averagePace, MeasurementUnit.IMPERIAL
+                                ).toString() else formatPace(
+                                    tempAveragePace.value, MeasurementUnit.IMPERIAL
+                                ).toString()
 
-                                        // Finish Button
-                                        MenuButton(
-                                            onClick = { onEndClick() },
-                                            imageVector = Icons.Default.Close,
-                                            contextDescription = stringResource(id = R.string.finish)
-                                        )
+                                if (averagePace != null) tempAveragePace.value = averagePace
 
-                                    }
-                                } else {
-                                    Button(onClick = {
-                                        navigateToMain()
-                                    }, modifier = Modifier.fillMaxWidth()) {
-                                        Text(text = "Exit Workout")
-                                    }
+                                Column {
+                                    WorkoutSectionRow(
+                                        name1 = stringResource(id = R.string.calories),
+                                        value1 = caloriesStr,
+                                        name2 = stringResource(id = R.string.speed),
+                                        value2 = speedStr
+                                    )
+                                    WorkoutSectionRow(
+                                        name1 = stringResource(id = R.string.steps),
+                                        value1 = stepsStr,
+                                        name2 = stringResource(
+                                            id = R.string.avgPace
+                                        ),
+                                        value2 = avgPaceStr,
+                                    )
                                 }
                             }
                         }
                     }
+
+                    WorkoutMenu(exerciseConfig = exerciseConfig,
+                        exerciseStateChange = exerciseStateChange,
+                        elapsedTime = elapsedTime.value,
+                        onResumeClick = { onResumeClick() },
+                        onPauseClick = { onPauseClick() },
+                        onEndClick = { onEndClick() },
+                        navigateToExerciseSelection = { navigateToExerciseSelection() },
+                        navigateToMain = { navigateToMain() },
+                        modifier = Modifier
+                            .offset {
+                                IntOffset(
+                                    swipeableState.offset.value.roundToInt(), 0
+                                )
+                            }
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colors.background))
                 }
+
                 if (averageSpeed != null) {
                     tempAverageSpeed.value = averageSpeed
                 }
@@ -397,7 +366,86 @@ fun TrackWorkoutScreen(
 }
 
 @Composable
-fun MenuButton(
+fun WorkoutMenu(
+    modifier: Modifier = Modifier,
+    exerciseConfig: ExerciseConfig?,
+    exerciseStateChange: ExerciseStateChange,
+    elapsedTime: String,
+    onResumeClick: () -> Unit = {},
+    onPauseClick: () -> Unit = {},
+    onEndClick: () -> Unit = {},
+    navigateToExerciseSelection: () -> Unit = {},
+    navigateToMain: () -> Unit = {},
+) {
+    Section(modifier = modifier) {
+        CenteredColumn {
+            if (exerciseConfig != null) {
+                Row {
+                    Text(text = elapsedTime, fontSize = 14.sp)
+                }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // New Workout Button
+                    WorkoutMenuButton(
+                        onClick = { navigateToExerciseSelection() },
+                        imageVector = Icons.Default.Add,
+                        contextDescription = stringResource(id = R.string.newWorkout)
+                    )
+
+
+                    if (exerciseStateChange.exerciseState.isPaused) {
+                        WorkoutMenuButton(
+                            onClick = { onResumeClick() },
+                            imageVector = Icons.Default.PlayArrow,
+                            contextDescription = stringResource(id = R.string.resume)
+                        )
+                    } else {
+                        WorkoutMenuButton(
+                            onClick = { onPauseClick() },
+                            imageVector = Icons.Default.Pause,
+                            contextDescription = stringResource(id = R.string.pause)
+                        )
+                    }
+
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Settings Button
+                    WorkoutMenuButton(
+                        onClick = { /*TODO*/ },
+                        imageVector = Icons.Default.Settings,
+                        contextDescription = stringResource(id = R.string.settings)
+                    )
+
+                    // Finish Button
+                    WorkoutMenuButton(
+                        onClick = { onEndClick() },
+                        imageVector = Icons.Default.Close,
+                        contextDescription = stringResource(id = R.string.finish)
+                    )
+
+                }
+            } else {
+                Button(onClick = {
+                    navigateToMain()
+                }, modifier = Modifier.fillMaxWidth()) {
+                    Text(text = "Exit Workout")
+                }
+            }
+        }
+    }
+
+}
+
+@Composable
+fun WorkoutMenuButton(
     onClick: () -> Unit,
     imageVector: ImageVector,
     contextDescription: String,
