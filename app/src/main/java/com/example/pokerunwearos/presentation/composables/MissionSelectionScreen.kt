@@ -29,7 +29,6 @@ import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
 fun MissionSelectionScreen(
     setExerciseGoal: (Double) -> Unit,
     navigateToSummary: () -> Unit = {},
-    navigateBack: () -> Unit = {},
 ) {
     val listState = rememberScalingLazyListState()
 
@@ -80,11 +79,6 @@ fun MissionSelectionScreen(
                     setExerciseGoal(0.0)
                     navigateToSummary()
                 }, text = stringResource(id = R.string.skip))
-            }
-            item {
-                MissionSelectionButton(onClick = {
-                    navigateBack()
-                }, text = stringResource(id = R.string.back))
             }
         }
     }

@@ -17,6 +17,7 @@ import androidx.health.services.client.data.ExerciseTypeCapabilities
 import androidx.health.services.client.data.ExerciseUpdate
 import androidx.health.services.client.data.LocationAvailability
 import androidx.health.services.client.data.WarmUpConfig
+import androidx.health.services.client.overrideAutoPauseAndResumeForActiveExercise
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -79,7 +80,9 @@ class ExerciseClientManager @Inject constructor(
     }
 
     suspend fun startExercise(
-        exerciseType: ExerciseType, exerciseGoal: ExerciseGoal<Double>?
+        exerciseType: ExerciseType,
+        exerciseGoal: ExerciseGoal<Double>?,
+        isAutoPauseAndResumeEnabled: Boolean = false
     ) {
         Log.d(TAG, "Starting %s".format(exerciseType.name))
 
@@ -120,10 +123,12 @@ class ExerciseClientManager @Inject constructor(
 
         val isGpsEnabled = exerciseType != ExerciseType.RUNNING_TREADMILL
 
+        val supportsAutoPause = capabilities.supportsAutoPauseAndResume
+
         val config = ExerciseConfig(
             exerciseType = exerciseType,
             dataTypes = dataTypes,
-            isAutoPauseAndResumeEnabled = false,
+            isAutoPauseAndResumeEnabled = supportsAutoPause && isAutoPauseAndResumeEnabled,
             isGpsEnabled = isGpsEnabled,
             exerciseGoals = exerciseGoals
         )
@@ -166,6 +171,16 @@ class ExerciseClientManager @Inject constructor(
     suspend fun resumeExercise() {
         Log.d(TAG, "Resuming exercise")
         exerciseClient.resumeExerciseAsync().await()
+    }
+
+    suspend fun overrideAutoPause(enabled: Boolean) {
+        Log.d(TAG, "Override auto-pause")
+
+        try {
+            exerciseClient.overrideAutoPauseAndResumeForActiveExercise(enabled)
+        } catch (e: Exception) {
+            Log.e(TAG, "Override auto-pause failed - ${e.message}")
+        }
     }
 
     /** Wear OS 3.0 reserves two buttons for the OS. For devices with more than 2 buttons,

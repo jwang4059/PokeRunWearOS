@@ -92,9 +92,9 @@ class ForegroundService : LifecycleService() {
     /**
      * Start exercise in this service's coroutine context.
      */
-    fun startExercise(exerciseType: ExerciseType, exerciseGoal: ExerciseGoal<Double>?) {
+    fun startExercise(exerciseType: ExerciseType, exerciseGoal: ExerciseGoal<Double>?, isAutoPauseAndResumeEnabled: Boolean) {
         lifecycleScope.launch {
-            exerciseClientManager.startExercise(exerciseType, exerciseGoal)
+            exerciseClientManager.startExercise(exerciseType, exerciseGoal, isAutoPauseAndResumeEnabled)
         }
         postOngoingActivityNotification()
     }

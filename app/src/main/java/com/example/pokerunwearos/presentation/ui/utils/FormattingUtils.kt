@@ -72,11 +72,18 @@ fun formatCalories(
 fun formatDistance(
     meters: Double,
     measurementUnit: MeasurementUnit = MeasurementUnit.METRIC,
-    hasUnit: Boolean = true
+    hasUnit: Boolean = true,
+    isInt: Boolean = false
 ) = buildSpannedString {
     val measurementConversionUnit = MeasurementMap[measurementUnit]!!
+    val distance = meters / measurementConversionUnit.distanceConversion
 
-    append("%02.2f".format(meters / measurementConversionUnit.distanceConversion))
+    if (isInt) {
+        append(distance.toInt().toString())
+    } else {
+        append("%02.2f".format(distance))
+    }
+
     if (hasUnit) {
         inSpans(RelativeSizeSpan(UNITS_RELATIVE_SIZE)) {
             append(" ${measurementConversionUnit.distanceUnit}")

@@ -60,12 +60,14 @@ class HealthServicesRepository @Inject constructor(
 
     fun prepareExercise(exerciseType: ExerciseType) = exerciseService?.prepareExercise(exerciseType)
     fun startExercise(
-        exerciseType: ExerciseType, exerciseGoal: ExerciseGoal<Double>?
-    ) = exerciseService?.startExercise(exerciseType, exerciseGoal)
+        exerciseType: ExerciseType, exerciseGoal: ExerciseGoal<Double>?, isAutoPauseAndResumeEnabled: Boolean
+    ) = exerciseService?.startExercise(exerciseType, exerciseGoal, isAutoPauseAndResumeEnabled)
 
     fun pauseExercise() = exerciseService?.pauseExercise()
     fun endExercise() = exerciseService?.endExercise()
     fun resumeExercise() = exerciseService?.resumeExercise()
+
+    suspend fun overrideAutoPause(enabled: Boolean) = exerciseClientManager.overrideAutoPause(enabled)
 
     var bound = mutableStateOf(false)
 

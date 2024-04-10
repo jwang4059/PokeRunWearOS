@@ -15,8 +15,15 @@ import com.example.pokerunwearos.presentation.composables.ExerciseSelectionScree
 import com.example.pokerunwearos.presentation.composables.MissionSelectionScreen
 import com.example.pokerunwearos.presentation.composables.PostWorkoutScreen
 import com.example.pokerunwearos.presentation.composables.PreWorkoutScreen
+import com.example.pokerunwearos.presentation.composables.SettingsDailyStepsStepperScreen
+import com.example.pokerunwearos.presentation.composables.SettingsExerciseGoalStepperScreen
+import com.example.pokerunwearos.presentation.composables.SettingsExerciseTypeScreen
+import com.example.pokerunwearos.presentation.composables.SettingsGenderScreen
+import com.example.pokerunwearos.presentation.composables.SettingsLanguageScreen
+import com.example.pokerunwearos.presentation.composables.SettingsMenuScreen
 import com.example.pokerunwearos.presentation.composables.StartScreen
 import com.example.pokerunwearos.presentation.composables.TrackWorkoutScreen
+import com.example.pokerunwearos.presentation.ui.utils.MeasurementUnit
 import com.example.pokerunwearos.presentation.ui.utils.toExerciseType
 import com.example.pokerunwearos.presentation.viewmodels.PokeRunViewModel
 import com.example.pokerunwearos.presentation.viewmodels.PostWorkoutViewModel
@@ -32,19 +39,28 @@ fun PokeRunNavHost(
         navController = navController, startDestination = startDestination, modifier = modifier
     ) {
         composable(PokeRunDestinations.StartScreen.route) {
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val skipPrompt by viewModel.skipPrompt.collectAsStateWithLifecycle()
+            val gender by viewModel.gender.collectAsStateWithLifecycle()
+            val stepsDaily by viewModel.stepsDaily.collectAsStateWithLifecycle()
             val hrUiState by viewModel.hrUiState.collectAsStateWithLifecycle()
 
             StartScreen(permissions = viewModel.permissions,
-                stepsDaily = uiState.stepsDaily,
+                skipPrompt = skipPrompt,
+                gender = gender,
+                stepsDaily = stepsDaily,
                 hrBPM = hrUiState.hrBPM,
                 hrAvailability = hrUiState.hrAvailability,
                 setHrEnabled = viewModel::setHrEnabled,
-                navigateToExerciseSelection = { navController.navigate(PokeRunDestinations.ExerciseSelectionScreen.route) })
+                navigateToExerciseSelection = { navController.navigate(PokeRunDestinations.ExerciseSelectionScreen.route) },
+                navigateToSummary = { navController.navigate(PokeRunDestinations.PreWorkoutScreen.route) },
+                navigateToSettings = {
+                    navController.navigate(PokeRunDestinations.SettingsMenuScreen.route)
+                })
         }
 
         composable(PokeRunDestinations.ExerciseSelectionScreen.route) {
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val currentExerciseType by viewModel.currentExerciseType.collectAsStateWithLifecycle()
+            val exerciseInfo by viewModel.exerciseInfo.collectAsStateWithLifecycle()
 
             ExerciseSelectionScreen(hasCapabilities = viewModel::hasExerciseCapabilities,
                 setExercise = viewModel::setExercise,
@@ -57,8 +73,8 @@ fun PokeRunNavHost(
                 },
                 navigateToNextScreen = {
                     if (viewModel.supportsGoalType(
-                            uiState.exerciseCapabilities?.get(
-                                uiState.currentExerciseType?.toExerciseType()
+                            exerciseInfo?.exerciseCapabilities?.get(
+                                currentExerciseType?.toExerciseType()
                             ), ExerciseGoalType.ONE_TIME_GOAL, DataType.DISTANCE_TOTAL
                         )
                     ) {
@@ -68,19 +84,14 @@ fun PokeRunNavHost(
                             PokeRunDestinations.PreWorkoutScreen.route
                         )
                     }
-
-                },
-                navigateBack = { navController.popBackStack() })
+                })
         }
 
         composable(PokeRunDestinations.MissionSelectionScreen.route) {
-            MissionSelectionScreen(
-                setExerciseGoal = viewModel::setExerciseGoal,
+            MissionSelectionScreen(setExerciseGoal = viewModel::setExerciseGoal,
                 navigateToSummary = {
                     navController.navigate(PokeRunDestinations.PreWorkoutScreen.route)
-                },
-                navigateBack = { navController.popBackStack() },
-            )
+                })
         }
 
 //        composable(PokeRunDestinations.MissionScreen.route) {
@@ -101,20 +112,24 @@ fun PokeRunNavHost(
         composable(PokeRunDestinations.PreWorkoutScreen.route) {
             val serviceState by viewModel.exerciseServiceState
             val permissions = viewModel.permissions
-            val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val currentExerciseType by viewModel.currentExerciseType.collectAsStateWithLifecycle()
+            val currentExerciseGoal by viewModel.currentExerciseGoal.collectAsStateWithLifecycle()
+            val exerciseInfo by viewModel.exerciseInfo.collectAsStateWithLifecycle()
 
-            PreWorkoutScreen(
-                serviceState = serviceState,
-                permissions = permissions,
-                trackedStatus = uiState.trackedStatus,
-                exerciseType = uiState.currentExerciseType,
-                exerciseGoal = uiState.currentExerciseGoal,
-                prepareExercise = viewModel::prepareExercise,
-                endExercise = viewModel::endExercise,
-                navigateToCountdown = {
-                    navController.navigate(PokeRunDestinations.CountdownScreen.route)
-                },
-            )
+            exerciseInfo?.let { it1 ->
+                PreWorkoutScreen(
+                    serviceState = serviceState,
+                    permissions = permissions,
+                    trackedStatus = it1.trackedStatus,
+                    exerciseType = currentExerciseType,
+                    exerciseGoal = currentExerciseGoal,
+                    prepareExercise = viewModel::prepareExercise,
+                    endExercise = viewModel::endExercise,
+                    navigateToCountdown = {
+                        navController.navigate(PokeRunDestinations.CountdownScreen.route)
+                    },
+                )
+            }
         }
 
         composable(PokeRunDestinations.CountdownScreen.route) {
@@ -129,13 +144,18 @@ fun PokeRunNavHost(
 
         composable(PokeRunDestinations.TrackWorkoutScreen.route) {
             val serviceState by viewModel.exerciseServiceState
+            val metricInfo by viewModel.metricInfo.collectAsStateWithLifecycle()
 
             TrackWorkoutScreen(serviceState = serviceState,
+                measurementUnit = metricInfo?.measurementUnit ?: MeasurementUnit.IMPERIAL,
                 onResumeClick = viewModel::resumeExercise,
                 onPauseClick = viewModel::pauseExercise,
                 onEndClick = viewModel::endExercise,
                 saveWorkout = viewModel::saveWorkout,
                 navigateToExerciseSelection = { navController.navigate(PokeRunDestinations.ExerciseSelectionScreen.route) },
+                navigateToSettings = {
+                    navController.navigate(PokeRunDestinations.SettingsMenuScreen.route)
+                },
                 navigateToPostWorkout = {
                     navController.navigate(PokeRunDestinations.PostWorkoutScreen.route) {
                         popUpTo(PokeRunDestinations.TrackWorkoutScreen.route) {
@@ -154,9 +174,11 @@ fun PokeRunNavHost(
 
         composable(PokeRunDestinations.PostWorkoutScreen.route) {
             val postWorkoutViewModel = hiltViewModel<PostWorkoutViewModel>()
+            val metricInfo by viewModel.metricInfo.collectAsStateWithLifecycle()
             val uiState by postWorkoutViewModel.uiState.collectAsStateWithLifecycle()
 
             PostWorkoutScreen(workout = uiState,
+                measurementUnit = metricInfo?.measurementUnit ?: MeasurementUnit.IMPERIAL,
                 fetchPokemon = postWorkoutViewModel::fetchData,
                 onRestartClick = {
                     navController.navigate(PokeRunDestinations.StartScreen.route) {
@@ -165,6 +187,87 @@ fun PokeRunNavHost(
                         }
                     }
                 })
+        }
+
+        composable(PokeRunDestinations.SettingsMenuScreen.route) {
+            val currentExerciseType by viewModel.currentExerciseType.collectAsStateWithLifecycle()
+            val currentExerciseGoal by viewModel.currentExerciseGoal.collectAsStateWithLifecycle()
+            val dailyStepsGoal by viewModel.dailyStepsGoal.collectAsStateWithLifecycle()
+            val gender by viewModel.gender.collectAsStateWithLifecycle()
+            val language by viewModel.language.collectAsStateWithLifecycle()
+            val skipPrompt by viewModel.skipPrompt.collectAsStateWithLifecycle()
+            val autoPause by viewModel.autoPause.collectAsStateWithLifecycle()
+            val metricInfo by viewModel.metricInfo.collectAsStateWithLifecycle()
+            val exerciseInfo by viewModel.exerciseInfo.collectAsStateWithLifecycle()
+
+            SettingsMenuScreen(
+                capabilities = exerciseInfo?.exerciseCapabilities?.get(currentExerciseType?.toExerciseType()),
+                currentExerciseType = currentExerciseType,
+                currentExerciseGoal = currentExerciseGoal,
+                dailyStepsGoal = dailyStepsGoal,
+                gender = gender,
+                language = language,
+                skipPrompt = skipPrompt?: false,
+                autoPause = autoPause ?: false,
+                useMetric = metricInfo?.useMetric ?: false,
+                measurementUnit = metricInfo?.measurementUnit ?: MeasurementUnit.IMPERIAL,
+                setSkipPrompt = viewModel::setSkipPrompt,
+                setAutoPause = viewModel::setAutoPause,
+                setUseMetric = viewModel::setUseMetric,
+                isExerciseInProgress = viewModel::isExerciseInProgress,
+                navigateToSettingsExerciseType = {
+                    navController.navigate(PokeRunDestinations.SettingsExerciseTypeScreen.route)
+                },
+                navigateToSettingsExerciseGoal = {
+                    navController.navigate(PokeRunDestinations.SettingsExerciseGoalStepperScreen.route)
+                },
+                navigateToSettingsDailyStepsGoal = {
+                    navController.navigate(PokeRunDestinations.SettingsDailyStepsStepperScreen.route)
+                },
+                navigateToSettingsGender = {
+                    navController.navigate(PokeRunDestinations.SettingsGenderScreen.route)
+                },
+                navigateToSettingsLanguage = {
+                    navController.navigate(PokeRunDestinations.SettingsLanguageScreen.route)
+                },
+            )
+        }
+
+        composable(PokeRunDestinations.SettingsExerciseTypeScreen.route) {
+            SettingsExerciseTypeScreen(hasCapabilities = viewModel::hasExerciseCapabilities,
+                setExerciseType = viewModel::setExercise,
+                navigateBack = { navController.popBackStack() })
+        }
+
+        composable(PokeRunDestinations.SettingsExerciseGoalStepperScreen.route) {
+            val currentExerciseGoal by viewModel.currentExerciseGoal.collectAsStateWithLifecycle()
+            val metricInfo by viewModel.metricInfo.collectAsStateWithLifecycle()
+
+            SettingsExerciseGoalStepperScreen(
+                measurementUnit = metricInfo?.measurementUnit ?: MeasurementUnit.IMPERIAL,
+                exerciseGoal = currentExerciseGoal ?: 0.0,
+                setExerciseGoal = viewModel::setExerciseGoal
+            )
+        }
+
+        composable(PokeRunDestinations.SettingsDailyStepsStepperScreen.route) {
+            val dailyStepsGoal by viewModel.dailyStepsGoal.collectAsStateWithLifecycle()
+
+            SettingsDailyStepsStepperScreen(
+                dailyStepsGoal = dailyStepsGoal ?: 0,
+                setDailyStepsGoal = viewModel::setDailyStepsGoal
+            )
+        }
+
+        composable(PokeRunDestinations.SettingsGenderScreen.route) {
+            SettingsGenderScreen(
+                setGender = viewModel::setGender,
+                navigateBack = { navController.popBackStack() })
+        }
+
+        composable(PokeRunDestinations.SettingsLanguageScreen.route) {
+            SettingsLanguageScreen(setLanguage = viewModel::setLanguage,
+                navigateBack = { navController.popBackStack() })
         }
     }
 }

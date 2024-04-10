@@ -14,8 +14,18 @@ sealed class PokeRunDestinations(
     object TrackWorkoutScreen : PokeRunDestinations("trackWorkout")
 
     object PostWorkoutScreen : PokeRunDestinations("postWorkout")
-    object MissionScreen: PokeRunDestinations("mission")
+
+    object SettingsMenuScreen : PokeRunDestinations("settingsMenu")
+    object SettingsExerciseTypeScreen : PokeRunDestinations("settingsExerciseType")
+
+    object SettingsExerciseGoalStepperScreen : PokeRunDestinations("settingsExerciseGoalStepper")
+
+    object SettingsDailyStepsStepperScreen : PokeRunDestinations("settingsDailyStepsStepper")
+
+    object SettingsGenderScreen : PokeRunDestinations("settingsGender")
+    object SettingsLanguageScreen : PokeRunDestinations("settingsLanguage")
 
 
+//    object MissionScreen: PokeRunDestinations("mission")
 }
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -45,11 +46,15 @@ import kotlinx.coroutines.launch
 fun StartScreen(
     modifier: Modifier = Modifier,
     permissions: Array<String>,
+    skipPrompt: Boolean?,
+    gender: String?,
     stepsDaily: Long?,
     hrBPM: Double,
     hrAvailability: DataTypeAvailability,
     setHrEnabled: (Boolean) -> Unit = {},
     navigateToExerciseSelection: () -> Unit = {},
+    navigateToSummary: () -> Unit = {},
+    navigateToSettings: () -> Unit = {}
 ) {
     val state = rememberLazyListState()
     val snappingLayout = remember(state) { SnapLayoutInfoProvider(state) }
@@ -90,6 +95,7 @@ fun StartScreen(
         ) {
             item {
                 CharacterProfileSection(
+                    gender = gender,
                     hrBPM = hrBPM,
                     availability = hrAvailability,
                     stepsDaily = stepsDaily,
@@ -98,12 +104,19 @@ fun StartScreen(
             }
             item {
                 StartWorkoutSection(
+                    skipPrompt = skipPrompt,
                     setHrEnabled = setHrEnabled,
                     navigateToExerciseSelection = navigateToExerciseSelection,
+                    navigateToSummary = navigateToSummary,
                     modifier = Modifier.fillParentMaxSize()
                 )
             }
-
+            item {
+                SettingsSection(
+                    navigateToSettings = navigateToSettings,
+                    modifier = Modifier.fillParentMaxSize()
+                )
+            }
         }
     }
 }
@@ -111,6 +124,7 @@ fun StartScreen(
 @Composable
 fun CharacterProfileSection(
     modifier: Modifier = Modifier,
+    gender: String?,
     hrBPM: Double,
     availability: DataTypeAvailability,
     stepsDaily: Long?
@@ -127,11 +141,15 @@ fun CharacterProfileSection(
         CenteredColumn(
             modifier = Modifier.weight(1f),
         ) {
-            Image(
-                painter = painterResource(R.drawable.male),
-                contentDescription = "Profile Image",
-                modifier = Modifier.size(64.dp)
-            )
+            if (gender != null) {
+                val painterResourceId = if (gender == "Male") R.drawable.male else R.drawable.female
+
+                Image(
+                    painter = painterResource(painterResourceId),
+                    contentDescription = "Profile Image",
+                    modifier = Modifier.size(64.dp)
+                )
+            }
         }
     }
 }
@@ -139,8 +157,10 @@ fun CharacterProfileSection(
 @Composable
 fun StartWorkoutSection(
     modifier: Modifier = Modifier,
+    skipPrompt: Boolean?,
     setHrEnabled: (Boolean) -> Unit,
     navigateToExerciseSelection: () -> Unit = {},
+    navigateToSummary: () -> Unit = {},
 ) {
     Section(modifier = modifier) {
         CenteredColumn {
@@ -152,7 +172,11 @@ fun StartWorkoutSection(
             Button(
                 onClick = {
                     setHrEnabled(false)
-                    navigateToExerciseSelection()
+                    if (skipPrompt == true) {
+                        navigateToSummary()
+                    } else {
+                        navigateToExerciseSelection()
+                    }
                 }, modifier = Modifier.size(ButtonDefaults.SmallButtonSize)
             ) {
                 Icon(
@@ -161,6 +185,21 @@ fun StartWorkoutSection(
                 )
             }
 
+        }
+    }
+}
+
+@Composable
+fun SettingsSection(modifier: Modifier = Modifier, navigateToSettings: () -> Unit = {}) {
+    Section(modifier = modifier) {
+        CenteredColumn {
+            Button(
+                onClick = {
+                    navigateToSettings()
+                }, modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = stringResource(id = R.string.settings))
+            }
         }
     }
 }

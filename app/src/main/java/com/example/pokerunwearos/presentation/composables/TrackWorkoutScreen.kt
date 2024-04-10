@@ -98,10 +98,12 @@ import kotlin.time.toKotlinDuration
 @Composable
 fun TrackWorkoutScreen(
     serviceState: ServiceState,
+    measurementUnit: MeasurementUnit = MeasurementUnit.IMPERIAL,
     onResumeClick: () -> Unit = {},
     onPauseClick: () -> Unit = {},
     onEndClick: () -> Unit = {},
     saveWorkout: (workout: Workout) -> Unit = {},
+    navigateToSettings: () -> Unit = {},
     navigateToExerciseSelection: () -> Unit = {},
     navigateToPostWorkout: () -> Unit = {},
     navigateToMain: () -> Unit = {},
@@ -249,16 +251,16 @@ fun TrackWorkoutScreen(
                             ) {
                                 // Distance
                                 val distanceStr = if (distance != null) formatDistance(
-                                    distance, MeasurementUnit.IMPERIAL
+                                    distance, measurementUnit
                                 ).toString() else formatDistance(
-                                    tempDistance.value, MeasurementUnit.IMPERIAL
+                                    tempDistance.value, measurementUnit
                                 ).toString()
 
                                 if (distance != null) tempDistance.value = distance
 
                                 // Pace
                                 val paceStr =
-                                    formatPace(tempPace.value, MeasurementUnit.IMPERIAL).toString()
+                                    formatPace(tempPace.value, measurementUnit).toString()
 
                                 Column {
                                     WorkoutSectionRow(
@@ -295,7 +297,7 @@ fun TrackWorkoutScreen(
 
                                 // Speed
                                 val speedStr = formatSpeed(
-                                    tempSpeed.value, MeasurementUnit.IMPERIAL
+                                    tempSpeed.value, measurementUnit
                                 ).toString()
 
                                 // Steps
@@ -305,9 +307,9 @@ fun TrackWorkoutScreen(
 
                                 // Average Pace
                                 val avgPaceStr = if (averagePace != null) formatPace(
-                                    averagePace, MeasurementUnit.IMPERIAL
+                                    averagePace, measurementUnit
                                 ).toString() else formatPace(
-                                    tempAveragePace.value, MeasurementUnit.IMPERIAL
+                                    tempAveragePace.value, measurementUnit
                                 ).toString()
 
                                 if (averagePace != null) tempAveragePace.value = averagePace
@@ -338,6 +340,7 @@ fun TrackWorkoutScreen(
                         onResumeClick = { onResumeClick() },
                         onPauseClick = { onPauseClick() },
                         onEndClick = { onEndClick() },
+                        navigateToSettings = { navigateToSettings() },
                         navigateToExerciseSelection = { navigateToExerciseSelection() },
                         navigateToMain = { navigateToMain() },
                         modifier = Modifier
@@ -374,6 +377,7 @@ fun WorkoutMenu(
     onResumeClick: () -> Unit = {},
     onPauseClick: () -> Unit = {},
     onEndClick: () -> Unit = {},
+    navigateToSettings: () -> Unit = {},
     navigateToExerciseSelection: () -> Unit = {},
     navigateToMain: () -> Unit = {},
 ) {
@@ -419,7 +423,7 @@ fun WorkoutMenu(
                 ) {
                     // Settings Button
                     WorkoutMenuButton(
-                        onClick = { /*TODO*/ },
+                        onClick = { navigateToSettings() },
                         imageVector = Icons.Default.Settings,
                         contextDescription = stringResource(id = R.string.settings)
                     )

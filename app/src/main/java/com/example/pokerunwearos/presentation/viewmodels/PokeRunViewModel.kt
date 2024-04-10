@@ -20,14 +20,15 @@ import com.example.pokerunwearos.data.repository.WorkoutRepository
 import com.example.pokerunwearos.data.repository.health.HealthServicesRepository
 import com.example.pokerunwearos.data.repository.health.MeasureMessage
 import com.example.pokerunwearos.data.repository.health.ServiceState
+import com.example.pokerunwearos.presentation.ui.utils.MeasurementUnit
 import com.example.pokerunwearos.presentation.ui.utils.toExerciseType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
@@ -49,7 +50,52 @@ class PokeRunViewModel @Inject constructor(
         Manifest.permission.ACTIVITY_RECOGNITION
     )
 
-    private val exerciseFlow = flow {
+    private val _currentExerciseType = settingsRepository.exerciseType
+    val currentExerciseType = _currentExerciseType.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _currentExerciseGoal = settingsRepository.exerciseGoal
+    val currentExerciseGoal = _currentExerciseGoal.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _dailyStepsGoal = settingsRepository.dailyStepsGoal
+    val dailyStepsGoal = _dailyStepsGoal.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _skipPrompt = settingsRepository.skipPrompt
+    val skipPrompt = _skipPrompt.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _autoPause = settingsRepository.autoPause
+    val autoPause = _autoPause.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _gender = settingsRepository.gender
+    val gender = _gender.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _language = settingsRepository.language
+    val language = _language.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _useMetric = settingsRepository.useMetric
+    val metricInfo = _useMetric.map { MetricInfo(useMetric = it ?: false, measurementUnit = if (it == true) MeasurementUnit.METRIC else MeasurementUnit.IMPERIAL) }.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _stepsDaily = passiveDataRepository.stepsDaily
+    val stepsDaily = _stepsDaily.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
+    )
+
+    private val _exerciseInfo = flow {
         emit(
             ExerciseInfo(
                 exerciseCapabilities = healthServicesRepository.getExerciseCapabilities(),
@@ -58,25 +104,8 @@ class PokeRunViewModel @Inject constructor(
             )
         )
     }
-
-    private val uiStateFlow = combine(
-        settingsRepository.exerciseType,
-        settingsRepository.exerciseGoal,
-        passiveDataRepository.stepsDaily,
-        exerciseFlow
-    ) { exerciseType: String?, exerciseGoal: Double?, stepsDaily: Long?, exerciseInfo: ExerciseInfo ->
-        return@combine PokeRunUiState(
-            currentExerciseType = exerciseType,
-            currentExerciseGoal = exerciseGoal,
-            stepsDaily = stepsDaily,
-            exerciseCapabilities = exerciseInfo.exerciseCapabilities,
-            trackedStatus = exerciseInfo.trackedStatus,
-            isTrackingAnotherExercise = exerciseInfo.isTrackingAnotherExercise,
-        )
-    }
-
-    val uiState = uiStateFlow.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(5_000), PokeRunUiState()
+    val exerciseInfo = _exerciseInfo.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(5_000), null
     )
 
     private val _hrUiState = MutableStateFlow(HeartRateUiState())
@@ -150,7 +179,7 @@ class PokeRunViewModel @Inject constructor(
     fun hasExerciseCapabilities(
         exerciseTypes: Array<ExerciseType>, checkAll: Boolean = false
     ): Boolean {
-        val capabilities = uiState.value.exerciseCapabilities ?: return true
+        val capabilities = exerciseInfo.value?.exerciseCapabilities ?: return true
 
         return if (!checkAll) {
             exerciseTypes.any { capabilities[it] != null }
@@ -171,6 +200,46 @@ class PokeRunViewModel @Inject constructor(
         }
     }
 
+    fun setDailyStepsGoal(steps: Int) {
+        viewModelScope.launch {
+            settingsRepository.setDailyStepsGoal(steps)
+        }
+    }
+
+    fun setSkipPrompt(skipPrompt: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setSkipPrompt(skipPrompt)
+        }
+    }
+
+    fun setAutoPause(autoPause: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setAutoPause(autoPause)
+
+            if (isExerciseInProgress()) {
+                healthServicesRepository.overrideAutoPause(autoPause)
+            }
+        }
+    }
+
+    fun setGender(gender: String) {
+        viewModelScope.launch {
+            settingsRepository.setGender(gender)
+        }
+    }
+
+    fun setLanguage(language: String) {
+        viewModelScope.launch {
+            settingsRepository.setLanguage(language)
+        }
+    }
+
+    fun setUseMetric(useMetric: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setUseMetric(useMetric)
+        }
+    }
+
     fun supportsGoalType(
         capabilities: ExerciseTypeCapabilities?,
         exerciseGoalType: ExerciseGoalType?,
@@ -179,7 +248,7 @@ class PokeRunViewModel @Inject constructor(
 
     fun prepareExercise() = viewModelScope.launch {
         val exerciseType =
-            uiState.value.currentExerciseType?.toExerciseType() ?: ExerciseType.RUNNING
+            currentExerciseType.value?.toExerciseType() ?: ExerciseType.RUNNING
 
         healthServicesRepository.prepareExercise(
             exerciseType
@@ -187,11 +256,11 @@ class PokeRunViewModel @Inject constructor(
     }
 
     fun startExercise() = viewModelScope.launch {
-
-        val threshold = uiState.value.currentExerciseGoal
+        val isAutoPauseAndResumeEnabled = autoPause.value ?: false
+        val threshold = currentExerciseGoal.value
 
         val exerciseType =
-            uiState.value.currentExerciseType?.toExerciseType() ?: ExerciseType.RUNNING
+            currentExerciseType.value?.toExerciseType() ?: ExerciseType.RUNNING
 
         val exerciseGoal =
             if (threshold != null && threshold != 0.0) ExerciseGoal.createOneTimeGoal(
@@ -203,7 +272,7 @@ class PokeRunViewModel @Inject constructor(
             ) else null
 
         healthServicesRepository.startExercise(
-            exerciseType, exerciseGoal
+            exerciseType, exerciseGoal, isAutoPauseAndResumeEnabled
         )
     }
 
@@ -230,11 +299,7 @@ data class HeartRateUiState(
     val hrAvailability: DataTypeAvailability = DataTypeAvailability.UNKNOWN
 )
 
-data class PokeRunUiState(
-    val currentExerciseType: String? = null,
-    val currentExerciseGoal: Double? = null,
-    val stepsDaily: Long? = null,
-    val exerciseCapabilities: MutableMap<ExerciseType, ExerciseTypeCapabilities>? = null,
-    val isTrackingAnotherExercise: Boolean = false,
-    val trackedStatus: Int = ExerciseTrackedStatus.UNKNOWN,
+data class MetricInfo(
+    val useMetric: Boolean = false,
+    val measurementUnit: MeasurementUnit = MeasurementUnit.IMPERIAL
 )

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.health.services.client.data.ExerciseType
 import androidx.wear.compose.material.AutoCenteringParams
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ListHeader
@@ -20,24 +19,18 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
+import androidx.wear.compose.material.itemsIndexed
 import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.wear.compose.material.scrollAway
-import com.example.pokerunwearos.presentation.ui.utils.RUNNING
-import com.example.pokerunwearos.presentation.ui.utils.TREADMILL
-import com.example.pokerunwearos.presentation.ui.utils.WALKING
-import com.example.pokerunwearos.presentation.ui.utils.exerciseTypes
 import com.example.pokerunwearos.presentation.ui.widgets.CenteredRow
 
 @Composable
-fun ExerciseSelectionScreen(
-    hasCapabilities: (Array<ExerciseType>, Boolean) -> Boolean,
-    setExercise: (String) -> Unit,
-    navigateToUnavailable: () -> Unit = {},
-    navigateToNextScreen: () -> Unit = {},
+fun SettingsLanguageScreen(
+    setLanguage: (String) -> Unit,
+    navigateBack: () -> Unit = {},
 ) {
-    if (!hasCapabilities(exerciseTypes, false)) navigateToUnavailable()
-
     val listState = rememberScalingLazyListState()
+    val languageList = arrayOf("English", "Japanese")
 
     Scaffold(timeText = {
         TimeText(
@@ -60,50 +53,19 @@ fun ExerciseSelectionScreen(
         ) {
             item {
                 ListHeader {
-                    Text(text = "Select exercise")
+                    Text(text = "Select language")
                 }
             }
-            item {
-                ExerciseSelectionButton(
-                    onClick = {
-                        setExercise(RUNNING)
-                        navigateToNextScreen()
-                    },
-                    enabled = hasCapabilities(arrayOf(ExerciseType.RUNNING), false),
-                    text = RUNNING
-                )
+            itemsIndexed(languageList) { _, language ->
+                CenteredRow {
+                    Button(onClick = {
+                        setLanguage(language)
+                        navigateBack()
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Text(text = language)
+                    }
+                }
             }
-            item {
-                ExerciseSelectionButton(
-                    onClick = {
-                        setExercise(TREADMILL)
-                        navigateToNextScreen()
-                    },
-                    enabled = hasCapabilities(arrayOf(ExerciseType.RUNNING_TREADMILL), false),
-                    text = TREADMILL
-                )
-            }
-            item {
-                ExerciseSelectionButton(
-                    onClick = {
-                        setExercise(WALKING)
-                        navigateToNextScreen()
-                    },
-                    enabled = hasCapabilities(arrayOf(ExerciseType.WALKING), false),
-                    text = WALKING
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ExerciseSelectionButton(
-    onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true, text: String
-) {
-    CenteredRow {
-        Button(onClick = onClick, modifier = modifier.fillMaxWidth(), enabled = enabled) {
-            Text(text = text)
         }
     }
 }
